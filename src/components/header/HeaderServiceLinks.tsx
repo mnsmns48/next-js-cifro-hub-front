@@ -11,7 +11,7 @@ const links = [
 
 export default function HeaderServiceLinks() {
     return (
-        <nav style={{ display: "flex", gap: 12, fontSize: 13 }}>
+        <nav style={{ display: "flex", gap: 12, fontSize: 14 }}>
             {links.map((l) => (
                 <Link key={l.href} href={l.href} style={{ color: "#000" }}>
                     {l.label}
