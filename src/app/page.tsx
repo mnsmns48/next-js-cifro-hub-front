@@ -4,7 +4,7 @@ export default function HomePage() {
     return (
         <main>
             <PageContainer>
-                тест
+                 .
             </PageContainer>
         </main>
     );

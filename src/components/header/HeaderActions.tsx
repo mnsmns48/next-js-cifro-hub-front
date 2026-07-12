@@ -1,30 +1,43 @@
 "use client";
 
+import { AlignCenterOutlined, ShoppingCartOutlined, StarFilled, UserOutlined } from "@ant-design/icons";
+
 export default function HeaderActions() {
+    const actions = [
+        { icon: <AlignCenterOutlined />, label: "Сравнение" },
+        { icon: <StarFilled />, label: "Избранное" },
+        { icon: <ShoppingCartOutlined />, label: "Корзина" },
+        { icon: <UserOutlined />, label: "Вход" },
+    ];
+
     return (
         <div
             style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                fontSize: 13,
+                gap: 20,
+                padding: 20,
             }}
         >
-            <button style={{ background: "none", border: "none", cursor: "pointer" }}>
-                Сравнение
-            </button>
+            {actions.map((a) => (
+                <div
+                    key={a.label}
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: "pointer",
+                    }}
+                >
+                    <div style={{ fontSize: 22, color: "#3a3a3a" }}>
+                        {a.icon}
+                    </div>
 
-            <button style={{ background: "none", border: "none", cursor: "pointer" }}>
-                Избранное
-            </button>
-
-            <button style={{ background: "none", border: "none", cursor: "pointer" }}>
-                Корзина
-            </button>
-
-            <button style={{ background: "none", border: "none", cursor: "pointer" }}>
-                Вход
-            </button>
+                    <div style={{ fontSize: 12, color: "#999999", marginTop: 2 }}>
+                        {a.label}
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

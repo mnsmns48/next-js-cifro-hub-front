@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button, Space } from "antd-mobile";
+import { Button, Space } from "antd";
 
 export default function MobileNav() {
     return (
@@ -15,7 +15,7 @@ export default function MobileNav() {
                 gap: 16,
             }}
         >
-            <Space direction="vertical" block>
+            <Space >
                 <Link href="/catalog">
                     <Button color="primary" size="large" block>
                         Каталог

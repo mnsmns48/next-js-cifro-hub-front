@@ -1,18 +1,11 @@
 "use client";
-import {Button} from 'antd'
+import {Button} from "antd";
+import {UnorderedListOutlined} from "@ant-design/icons";
 
 export default function HeaderCatalogButton() {
     return (
-        <Button
-            style={{
-                background: "#fff",
-                border: "1px solid #ccc",
-                borderRadius: 4,
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: 14,
-            }}
-        >
+        <Button style={{background: "transparent", border: "none", color: "#fff", fontSize: 16, fontWeight: 500}}
+                icon={<UnorderedListOutlined/>}>
             Каталог
         </Button>
     );

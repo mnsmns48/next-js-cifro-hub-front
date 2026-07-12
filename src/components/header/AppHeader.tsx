@@ -5,9 +5,10 @@ import HeaderBottom from "./HeaderBottom";
 
 export default function AppHeader() {
     return (
-        <header style={{ width: "100%" }}>
-            <HeaderTop />
+        <header >
+
             <HeaderBottom />
+            {/*<HeaderTop />*/}
         </header>
     );
 }

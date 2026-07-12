@@ -1,49 +1,89 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
+* {
+  margin: 0;
+  box-sizing: border-box;
 }
 
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
+  width: 100%;
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+  background-color: #efefef;
+  color: #000;
+  font-family: var(--font-main);
 }
 
 a {
-  color: inherit;
   text-decoration: none;
+  color: inherit;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+
+:root {
+  /* Шрифты */
+  --font-main: "GTEestiProText-Medium", sans-serif;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Цвета */
+  --color-primary: #ffd400;
+  --color-secondary: #fff;
+  --color-border: #e5e5e5;
+  --color-text: #000;
+  --color-text-secondary: #707f8d;
+
+  /* Отступы */
+  --spacing-xs: 4px;
+  --spacing-s: 8px;
+  --spacing-m: 12px;
+  --spacing-l: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+
+  /* Контейнеры */
+  --content-max-width: 1280px;
+  --content-padding: 16px;
+
+  /* Хедер */
+  --header-top-height: 40px;
+  --header-bottom-height: 64px;
+
+  /* Анимации */
+  --transition-fast: 0.15s ease;
+  --transition-medium: 0.25s ease;
+}
+
+/* ================================
+   Глобальные утилиты
+   ================================ */
+
+.container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+}
+
+.page-container {
+  width: clamp(320px, 90vw, 1416px);
+  margin: 0 auto;
+}
+
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
