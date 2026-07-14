@@ -1,8 +1,10 @@
 "use client";
 
+import {Input} from "antd";
+
 export default function HeaderSearch() {
     return (
-        <input
+        <Input
             placeholder="Поиск ..."
             style={{
                 width: "100%",
