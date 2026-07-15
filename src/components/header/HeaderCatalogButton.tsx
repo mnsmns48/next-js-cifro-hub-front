@@ -4,7 +4,7 @@ import {UnorderedListOutlined} from "@ant-design/icons";
 
 export default function HeaderCatalogButton() {
     return (
-        <Button style={{background: "transparent", border: "none", color: "#fff", fontSize: 16, fontWeight: 500}}
+        <Button style={{background: "transparent", border: "none", color: "#fff", fontSize: 17, fontWeight: 400}}
                 icon={<UnorderedListOutlined/>}>
             Каталог
         </Button>

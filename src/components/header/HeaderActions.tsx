@@ -29,7 +29,7 @@ export default function HeaderActions() {
                         cursor: "pointer",
                     }}
                 >
-                    <div style={{ fontSize: 22, color: "#3a3a3a" }}>
+                    <div style={{ fontSize: 22, color: "#494949" }}>
                         {a.icon}
                     </div>
 
