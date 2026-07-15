@@ -53,7 +53,7 @@ export default function AppHeader() {
                     </div>
                     <HeaderActions/>
                 </div>
-                <div style={{flex: 1, display: "flex", justifyContent: "center", padding: "20px"}}>
+                <div style={{flex: 1, display: "flex", justifyContent: "center", padding: "23px"}}>
                     <HeaderServiceLinks/>
                 </div>
             </div>

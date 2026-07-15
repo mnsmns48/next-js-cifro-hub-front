@@ -3,14 +3,17 @@ import AppHeader from "@/components/header/AppHeader";
 import "./globals.css";
 
 
-export default function RootLayout({children}: {
-    children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="ru">
-        <body className="page-container">
-        <AppHeader/>
-        {children}
+        <body>
+        <div className="page-container">
+            <AppHeader />
+        </div>
+
+        <div className="page-container" style={{ marginTop: 20 }}>
+            {children}
+        </div>
         </body>
         </html>
     );
