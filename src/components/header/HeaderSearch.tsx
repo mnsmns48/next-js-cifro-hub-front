@@ -11,7 +11,7 @@ export default function HeaderSearch() {
                 height: 48,
                 padding: "0 12px",
                 border: "1px solid #ccc",
-                borderRadius: 20,
+                borderRadius: 18,
                 fontSize: 16,
             }}
         />

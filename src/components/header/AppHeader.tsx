@@ -17,7 +17,7 @@ export default function AppHeader() {
                 height: 135,
                 display: "flex",
                 flexDirection: "column",
-                borderRadius: "0 0 20px 20px",
+                borderRadius: "0 0 18px 18px",
                 padding: "0 10px",
             }}>
                 <div style={{
@@ -34,14 +34,13 @@ export default function AppHeader() {
                         <Link href="/" style={{
                             display: "flex",
                             alignItems: "center",
-                            background: "linear-gradient(135deg, #494949 0%, #404040 100%)",
-                            borderRadius: 20,
-                            padding: "6px 12px",
+                            background: "linear-gradient(135deg, #494a4a 0%, #2f2f2f 100%)",
+                            borderRadius: 18,
+                            padding: "6px 8px",
                             gap: 12,
                             textDecoration: "none",
                             width: 220,
                             height: 80,
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
                         }}
                         >
                             <Image src="/logo-cifro-hub.svg" alt="CifroHub Logo" preview={false}/>
