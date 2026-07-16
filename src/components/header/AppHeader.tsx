@@ -13,34 +13,36 @@ export default function AppHeader() {
     return (
         <header>
             <div style={{
-                background: "#ffffff",
-                height: 135,
+                background: "#fbfbfb",
+                height: 100,
                 display: "flex",
                 flexDirection: "column",
-                borderRadius: "0 0 18px 18px",
+                justifyContent: "center",
+                borderRadius: "22px",
                 padding: "0 10px",
+                border: "1px solid #e8e8e8",
             }}>
-                <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "end",
-                    padding: "8px 20px 25px 20px"
-                }}>
-                    <HeaderContact/>
-                </div>
+                {/*<div style={{*/}
+                {/*    display: "flex",*/}
+                {/*    alignItems: "center",*/}
+                {/*    justifyContent: "end",*/}
+                {/*    padding: "8px 20px 25px 20px"*/}
+                {/*}}>*/}
+                {/*    <HeaderContact/>*/}
+                {/*</div>*/}
 
-                <div style={{display: "flex", alignItems: "center", gap: 6, height: 20}}>
+                <div style={{display: "flex", alignItems: "center", gap: 6, height: 60}}>
                     <div style={{padding: "10px", margin: "10px"}}>
                         <Link href="/" style={{
                             display: "flex",
                             alignItems: "center",
-                            background: "linear-gradient(135deg, #494a4a 0%, #2f2f2f 100%)",
+                            background: "#454545",
                             borderRadius: 18,
-                            padding: "6px 8px",
-                            gap: 12,
+                            padding: "6px 14px",
+                            gap: 6,
                             textDecoration: "none",
                             width: 220,
-                            height: 80,
+                            height: 70,
                         }}
                         >
                             <Image src="/logo-cifro-hub.svg" alt="CifroHub Logo" preview={false}/>
@@ -53,9 +55,9 @@ export default function AppHeader() {
                     </div>
                     <HeaderActions/>
                 </div>
-                <div style={{flex: 1, display: "flex", justifyContent: "center", padding: "23px"}}>
-                    <HeaderServiceLinks/>
-                </div>
+                {/*<div style={{flex: 1, display: "flex", justifyContent: "center", padding: "23px"}}>*/}
+                {/*    <HeaderServiceLinks/>*/}
+                {/*</div>*/}
             </div>
 
         </header>

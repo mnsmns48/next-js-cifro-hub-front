@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Rate, Button } from "antd";
+import {Card, Rate, Button} from "antd";
 
 interface ProductCardProps {
     title: string;
@@ -8,62 +8,75 @@ interface ProductCardProps {
     image: string;
 }
 
-export default function ProductCard({ title, price, image }: ProductCardProps) {
+export default function ProductCard({title, price, image}: ProductCardProps) {
     return (
-        <Card
-            hoverable
-            style={{
-                minWidth: 260,
-                height: 380,
-                flex: "0 0 auto",
-                borderRadius: 16,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-            }}
-
-            cover={
-                <img
-                    src={image}
-                    alt={title}
-                    style={{
-                        height: 180,
-                        objectFit: "cover",
-                        background: "#f5f5f5",
-                    }}
-                />
-            }
+        <Card hoverable style={{
+            width: 210,
+            height: 360,
+            flex: "0 0 auto",
+            borderRadius: 16,
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+        }}
+              cover={
+                  <img src={image} alt={title} style={{
+                      height: 180,
+                      objectFit: "cover",
+                      background: "#ffffff",
+                  }}
+                  />
+              }
         >
             <div
                 style={{
-                    fontSize: 16,
-                    fontWeight: 600,
+                    fontSize: 13,
+                    fontWeight: 400,
                     marginBottom: 6,
-                    minHeight: 48,
+                    height: 22,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                 }}
             >
                 {title}
             </div>
 
-            <Rate disabled defaultValue={4} style={{ fontSize: 14 }} />
+            <div style={{height: 20, display: "flex", alignItems: "center"}}>
+                <Rate disabled defaultValue={4} style={{fontSize: 14}}/>
+            </div>
 
-            <div style={{ fontSize: 20, fontWeight: 700, margin: "12px 0" }}>
+            <div style={{
+                fontSize: 20,
+                fontWeight: 700,
+                margin: "12px 0",
+                height: 24,
+                display: "flex",
+                alignItems: "center",
+            }}
+            >
                 {price} ₽
             </div>
 
-            <Button
-                type="primary"
-                style={{
-                    width: "100%",
-                    borderRadius: 12,
-                    background: "#ffd400",
-                    color: "#000",
-                    fontWeight: 600,
-                }}
-            >
-                В корзину
-            </Button>
+            <div style={{marginTop: "auto"}}>
+                <Button
+                    type="primary"
+                    style={{
+                        width: "100%",
+                        height: 40,
+                        borderRadius: 12,
+                        background: "#e2fc2a",
+                        border: "1px solid #e8e8e8",
+                        color: "#000",
+                        fontWeight: 600,
+                        fontSize: 14,
+                    }}
+                >
+                    В корзину
+                </Button>
+            </div>
         </Card>
+
 
     );
 }
