@@ -1,58 +1,58 @@
 
 * {
-  margin: 0;
-  box-sizing: border-box;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 html,
 body {
-  width: 100%;
-  min-height: 100%;
-  background-color: #efefef;
-  color: #000;
-  font-family: var(--font-main);
+    width: 100%;
+    min-height: 100%;
+    background-color: #efefef;
+    color: #000;
+    font-family: var(--font-main);
 }
 
 a {
-  text-decoration: none;
-  color: inherit;
+    text-decoration: none;
+    color: inherit;
 }
 
 
 :root {
-  /* Шрифты */
-  --font-main: "GTEestiProText-Medium", sans-serif;
-  --font-regular: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
+    /* Шрифты */
+    --font-main: "GTEestiProText-Medium", sans-serif;
+    --font-regular: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
 
-  /* Цвета */
-  --color-primary: #ffd400;
-  --color-secondary: #fff;
-  --color-border: #e5e5e5;
-  --color-text: #000;
-  --color-text-secondary: #707f8d;
+    /* Цвета */
+    --color-primary: #ffd400;
+    --color-secondary: #fff;
+    --color-border: #e5e5e5;
+    --color-text: #000;
+    --color-text-secondary: #707f8d;
 
-  /* Отступы */
-  --spacing-xs: 4px;
-  --spacing-s: 8px;
-  --spacing-m: 12px;
-  --spacing-l: 16px;
-  --spacing-xl: 24px;
-  --spacing-xxl: 32px;
+    /* Отступы */
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 12px;
+    --spacing-l: 16px;
+    --spacing-xl: 24px;
+    --spacing-xxl: 32px;
 
-  /* Контейнеры */
-  --content-max-width: 1280px;
-  --content-padding: 16px;
+    /* Контейнеры */
+    --content-max-width: 1280px;
+    --content-padding: 16px;
 
-  /* Хедер */
-  --header-top-height: 40px;
-  --header-bottom-height: 64px;
+    /* Хедер */
+    --header-top-height: 40px;
+    --header-bottom-height: 64px;
 
-  /* Анимации */
-  --transition-fast: 0.15s ease;
-  --transition-medium: 0.25s ease;
+    /* Анимации */
+    --transition-fast: 0.15s ease;
+    --transition-medium: 0.25s ease;
 }
 
 /* ================================
@@ -60,47 +60,35 @@ a {
    ================================ */
 
 .container {
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: 0 var(--content-padding);
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0 var(--content-padding);
 }
 
 .layout-wrapper {
-  width: clamp(320px, 90vw, 1416px);
-  margin: 0 auto;
-
-  /*max-width: 1116px;*/
-
-}
-
-.header-container {
-
-  /*margin-left: auto;*/
+    width: clamp(320px, 90vw, 1416px);
+    margin: 0 auto;
 }
 
 
 .page-container {
-  width: 88%;
-  /*max-width: 1245px;*/
-  /*margin-left: auto;*/
+    width: 88%;
 }
-
-
 
 
 .flex {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
