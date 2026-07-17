@@ -20,13 +20,28 @@ export default function ProductCard({title, price, image}: ProductCardProps) {
             flexDirection: "column",
         }}
               cover={
-                  <img src={image} alt={title} style={{
-                      height: 180,
-                      objectFit: "cover",
-                      background: "#ffffff",
-                  }}
-                  />
+                  <div
+                      style={{
+                          height: 180,
+                          padding: 15,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+
+                      }}
+                  >
+                      <img src={image}
+                           alt={title}
+                           style={{
+                               maxWidth: "100%",
+                               maxHeight: "100%",
+                               objectFit: "contain",
+                               display: "block",
+                           }}
+                      />
+                  </div>
               }
+
         >
             <div
                 style={{

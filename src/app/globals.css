@@ -65,10 +65,24 @@ a {
   padding: 0 var(--content-padding);
 }
 
-.page-container {
+.layout-wrapper {
   width: clamp(320px, 90vw, 1416px);
   margin: 0 auto;
 }
+
+.header-container {
+  width: 88%;
+  max-width: 1245px;
+  margin-left: auto;
+}
+
+.page-container {
+  width: 88%;
+  max-width: 1245px;
+  margin-left: auto;
+}
+
+
 
 
 .flex {
