@@ -10,27 +10,26 @@ export default function AppHeaderCatalogOnly() {
                 border: "1px solid #e8e8e8",
                 borderRadius: 22,
                 height: 90,
+                display: "flex",
+                alignItems: "center",
                 padding: "6px 10px",
-                lineHeight: "78px",
-                whiteSpace: "nowrap",
             }}
         >
             <Link
                 href="/"
                 style={{
-                    display: "inline-block",
-                    background: "#454545",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#4a4a4a",
                     borderRadius: 18,
                     textDecoration: "none",
-                    paddingLeft: 12,
-                    width: 170,
-                    height: 60,
-                    verticalAlign: "middle",
-                    lineHeight: "60px",
+                    paddingLeft: 6,
+                    width: 175,
+                    height: 55,
                 }}
             >
-                <Image src="/logo-cifro-hub.svg" alt="CifroHub Logo" preview={false} />
-                <HeaderCatalogButton />
+                <Image src="/logo-cifro-hub.svg" alt="CifroHub Logo" preview={false}/>
+                <HeaderCatalogButton/>
             </Link>
         </div>
     );
