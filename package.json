@@ -13,8 +13,10 @@
     "antd": "^6.5.0",
     "antd-mobile": "^5.42.3",
     "next": "^16.2.10",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-slick": "^0.31.0",
+    "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",

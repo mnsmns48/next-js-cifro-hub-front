@@ -13,11 +13,12 @@ export default function RootLayout({children}: { children: ReactNode }) {
         <div className="layout-wrapper">
             <div style={{display: "flex", gap: 8}}>
                 <div style={{marginTop: 10}}>
-                    <AppHeaderCatalogOnly/>
-                    <GlobalFilter/>
+
+
                 </div>
 
                 <div style={{marginTop: 10}}>
+
                     <AppHeaderSearchActions/>
                     <div style={{marginTop: 12}}>
                         <PageContainer>

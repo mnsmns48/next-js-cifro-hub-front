@@ -1,25 +1,27 @@
 import HeaderSearch from "@/components/header/HeaderSearch";
 import HeaderActions from "@/components/header/HeaderActions";
 
+import InfoSlider from "@/components/header/InfoSlider";
+import AppHeaderCatalogOnly from "@/components/header/AppHeaderCatalogOnly";
+
 export default function AppHeaderSearchActions() {
     return (
-        <div
-            style={{
+        <>
+            <div style={{
                 background: "#fafafa",
                 border: "1px solid #e8e8e8",
-                borderRadius: 22,
+                borderRadius: 18,
                 height: 90,
-                padding: "6px 10px",
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "center",
-                gap: 12,
-            }}
-        >
-            <div style={{ flex: 1 }}>
-                <HeaderSearch />
+                padding: "20px",
+            }}>
+                <AppHeaderCatalogOnly/>
+                <HeaderSearch/>
+                <InfoSlider/>
+                <HeaderActions/>
             </div>
-
-            <HeaderActions />
-        </div>
+        </>
     );
 }
