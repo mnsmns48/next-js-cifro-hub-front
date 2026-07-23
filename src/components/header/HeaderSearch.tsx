@@ -5,8 +5,8 @@ import {Input} from "antd";
 export default function HeaderSearch() {
     return (
         <div style={{display: "flex", alignItems: "center"}}>
-            <Input placeholder="Поиск ..."
-                   style={{width: "80%", height: 40, border: "1px solid #ccc", borderRadius: 18, fontSize: 16}}/>
+            <Input placeholder="Поиск"
+                   style={{height: 40, border: "1px solid #ccc", borderRadius: 18, fontSize: 16}}/>
         </div>
     );
 }

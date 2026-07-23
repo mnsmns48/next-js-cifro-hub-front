@@ -1,15 +1,11 @@
 "use client";
 import {useState, useEffect} from "react";
-import {Image} from "antd";
 
 export default function InfoSlider() {
     const slides = [
-        <Image src="https://i.pinimg.com/736x/4b/25/4b/4b254b59645199a41d534a1124953df0.jpg" alt="img"
-               preview={false}/>,
-        <Image src="https://i.pinimg.com/736x/16/0f/2d/160f2dd44cace3fedffb97136449212e.jpg" alt="img2"
-               preview={false}/>,
-        <Image src="https://i.pinimg.com/736x/f8/09/f2/f809f26fa0160c1b9adc8be3cb1a7f98.jpg" alt="img3"
-               preview={false}/>,
+        "https://api.ozero.market/pictures/298144/conversions/5d7ab796a4f2aa5a3b84de125e44bcc2a2292767-large.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYApmGLNW-HjG3ZQt4yjuI18VqWrbWOOA7lhMr9uQSiQ&s",
+        "https://www.shutterstock.com/image-illustration/neon-business-4-number-icon-600nw-2671863459.jpg",
     ];
 
     const [index, setIndex] = useState(0);
@@ -22,17 +18,24 @@ export default function InfoSlider() {
     }, []);
 
     return (
-        <div style={{padding: "20px 20px"}}>
-            <div style={{height: 40, overflow: "hidden", borderRadius: 18,}}>
-                <div style={{
-                    display: "flex",
-                    fontSize: 18,
-                    fontWeight: 600,
-                    transition: "opacity 0.5s",
-                    opacity: 1,
-                }}>
-                    {slides[index]}
-                </div>
+        <div style={{
+            height: 40,
+            minWidth: 645,
+            overflow: "hidden",
+            borderRadius: 18,
+            display: "flex",
+            alignItems: "center",
+            flex: 1
+        }}>
+            <div style={{
+                flex: 1,
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+            }}>
+                <img src={slides[index]} alt="slide"
+                     style={{width: "100%", height: "100%", objectFit: "cover", objectPosition: "center"}}/>
             </div>
         </div>
     );

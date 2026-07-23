@@ -12,6 +12,7 @@ export default function AppHeaderSearchActions() {
                 border: "1px solid #e8e8e8",
                 borderRadius: 18,
                 height: 90,
+                gap: 18,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
