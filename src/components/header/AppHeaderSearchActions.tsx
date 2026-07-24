@@ -2,7 +2,7 @@ import HeaderSearch from "@/components/header/HeaderSearch";
 import HeaderActions from "@/components/header/HeaderActions";
 
 import InfoSlider from "@/components/header/InfoSlider";
-import AppHeaderCatalogOnly from "@/components/header/AppHeaderCatalogOnly";
+import AppHeaderCatalogLogoBtn from "@/components/header/AppHeaderCatalogLogoBtn";
 
 export default function AppHeaderSearchActions() {
     return (
@@ -18,7 +18,7 @@ export default function AppHeaderSearchActions() {
                 alignItems: "center",
                 padding: "20px",
             }}>
-                <AppHeaderCatalogOnly/>
+                <AppHeaderCatalogLogoBtn/>
                 <HeaderSearch/>
                 <InfoSlider/>
                 <HeaderActions/>

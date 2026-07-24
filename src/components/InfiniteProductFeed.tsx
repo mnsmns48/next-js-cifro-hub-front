@@ -12,7 +12,7 @@ interface Product {
     pics?: string[];
 }
 
-export default function ProductsTest() {
+export default function InfiniteProductFeed() {
     const [products, setProducts] = useState<Product[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const [hasMore, setHasMore] = useState(true);
@@ -128,11 +128,10 @@ export default function ProductsTest() {
                 <>
                     <div
                         style={{
-                            display: "flex",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                             gap: 12,
                             padding: "20px",
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
                             background: "#fafafa",
                             borderRadius: 16,
                         }}
@@ -148,6 +147,7 @@ export default function ProductsTest() {
                     </div>
 
                     <div ref={sentinelRef} style={{height: 1}}/>
+
 
                     {loading && (
                         <div style={{textAlign: "center", padding: 20}}>

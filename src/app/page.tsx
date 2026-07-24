@@ -1,11 +1,11 @@
 import PageContainer from "@/components/PageContainer";
-import ProductsTest from "@/components/ProductsTest";
+import InfiniteProductFeed from "@/components/InfiniteProductFeed";
 
 export default function HomePage() {
     return (
         <main>
             <PageContainer>
-                <ProductsTest/>
+                <InfiniteProductFeed/>
             </PageContainer>
         </main>
     );
