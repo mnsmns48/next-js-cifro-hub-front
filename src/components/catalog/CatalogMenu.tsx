@@ -29,7 +29,7 @@ export default function CatalogMenu() {
     if (loading) {
         return (
             <div style={{padding: 40, textAlign: "center"}}>
-                <Spin size="large"/>
+                <Spin size="small"/>
             </div>
         );
     }

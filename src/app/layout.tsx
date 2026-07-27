@@ -1,7 +1,7 @@
 import type {ReactNode} from "react";
 
 import "./globals.css";
-import AppHeaderSearchActions from "@/components/header/AppHeaderSearchActions";
+import AppHeader from "@/components/header/AppHeader";
 import PageContainer from "@/components/PageContainer";
 
 
@@ -14,7 +14,7 @@ export default function RootLayout({children}: { children: ReactNode }) {
                 <div style={{marginTop: 10}}>
                 </div>
                 <div style={{marginTop: 10}}>
-                    <AppHeaderSearchActions/>
+                    <AppHeader/>
                     <div style={{marginTop: 12}}>
                         <PageContainer>
                             {children}

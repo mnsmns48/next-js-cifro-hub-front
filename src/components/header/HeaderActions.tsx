@@ -66,8 +66,8 @@ function IconButton({icon, label}: { icon: React.ReactNode; label: string }) {
                 flexDirection: "column",
                 alignItems: "center",
                 cursor: "pointer",
-                textDecoration: hover ? "line-through" : "none",   // ← зачёркиваем весь блок
-                opacity: hover ? 0.6 : 1,                         // ← лёгкое затемнение
+                textDecoration: hover ? "line-through" : "none",
+                opacity: hover ? 0.6 : 1,
                 transition: "opacity 0.2s ease, text-decoration 0.2s ease",
             }}
             onMouseEnter={() => setHover(true)}
@@ -106,7 +106,6 @@ function IconButton({icon, label}: { icon: React.ReactNode; label: string }) {
                 {label}
             </div>
 
-            {/* Tooltip на весь блок */}
             <div
                 style={{
                     position: "absolute",
@@ -124,7 +123,7 @@ function IconButton({icon, label}: { icon: React.ReactNode; label: string }) {
                     transition: "opacity 0.2s ease",
                 }}
             >
-                Сейчас регистрация недоступна
+                Сейчас недоступно
             </div>
         </div>
     );
