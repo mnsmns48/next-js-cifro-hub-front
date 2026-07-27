@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Spin } from "antd";
+import { Card, Spin, Menu } from "antd";
+import type { MenuProps } from "antd";
 
 interface HubLevel {
     id: number;
@@ -15,6 +16,7 @@ interface HubLevel {
 export default function CardsCatalogMenu() {
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
+    const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
@@ -33,71 +35,113 @@ export default function CardsCatalogMenu() {
         );
     }
 
-    const depth0 = levels
-        .filter(l => l.depth === 0)
-        .sort((a, b) => a.sort_order - b.sort_order);
+    const depth0 = levels.filter(l => l.depth === 0).sort((a, b) => a.sort_order - b.sort_order);
+    const depth1 = levels.filter(l => l.depth === 1);
+    const depth2 = levels.filter(l => l.depth === 2);
+
+    const buildMenu = (rootId: number): MenuProps["items"] => {
+        const level1 = depth1.filter(l => l.parent_id === rootId);
+
+        return level1.map(l1 => {
+            const level2 = depth2.filter(l => l.parent_id === l1.id);
+
+            return {
+                key: String(l1.id),
+                label: l1.label,
+                children:
+                    level2.length > 0
+                        ? level2.map(l2 => ({
+                            key: String(l2.id),
+                            label: l2.label,
+                        }))
+                        : undefined,
+            };
+        });
+    };
 
     return (
         <div
             style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
                 gap: 20,
                 padding: 10,
             }}
         >
-            {depth0.map(item => (
-                <div
-                    key={item.id}
-                    onClick={() => {
-                        window.location.href = `/search?menu=${item.id}`;
-                    }}
-                    style={{
-                        background: "#fff",
-                        borderRadius: 16,
-                        padding: 20,
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                        cursor: "pointer",
-                        textAlign: "center",
-                        transition: "transform .15s ease, box-shadow .15s ease",
-                    }}
-                    onMouseEnter={e => {
-                        const el = e.currentTarget as HTMLDivElement;
-                        el.style.transform = "translateY(-4px)";
-                        el.style.boxShadow = "0 6px 16px rgba(0,0,0,0.12)";
-                    }}
-                    onMouseLeave={e => {
-                        const el = e.currentTarget as HTMLDivElement;
-                        el.style.transform = "translateY(0)";
-                        el.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-                    }}
-                >
-                    {/* Картинка */}
-                    {item.icon && (
-                        <img
-                            src={item.icon}
-                            alt={item.label}
-                            style={{
-                                width: 80,
-                                height: 80,
-                                objectFit: "contain",
-                                marginBottom: 12,
-                            }}
-                        />
-                    )}
+            {depth0.map(d0 => {
+                const isExpanded = expandedCardId === d0.id;
 
-                    {/* Название */}
-                    <div
-                        style={{
-                            fontSize: 16,
-                            fontWeight: 600,
-                            color: "#333",
-                        }}
-                    >
-                        {item.label}
+                return (
+                    <div key={d0.id} style={{ position: "relative" }}>
+                        <Card
+                            hoverable
+                            style={{
+                                width: "100%",
+                                height: 220,
+                                borderRadius: 16,
+                                cursor: "pointer",
+                                overflow: "hidden",
+                            }}
+                            onClick={() => {
+                                setExpandedCardId(isExpanded ? null : d0.id);
+                            }}
+                            cover={
+                                d0.icon ? (
+                                    <img
+                                        src={d0.icon}
+                                        alt={d0.label}
+                                        style={{
+                                            width: "100%",
+                                            height: 120,
+                                            objectFit: "contain",
+                                            padding: 10,
+                                        }}
+                                    />
+                                ) : null
+                            }
+                        >
+                            <div
+                                style={{
+                                    fontSize: 16,
+                                    fontWeight: 600,
+                                    textAlign: "center",
+                                }}
+                            >
+                                {d0.label}
+                            </div>
+                        </Card>
+
+                        {/* Меню внутри карточки */}
+                        {isExpanded && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    background: "rgba(255,255,255,0.98)",
+                                    borderRadius: 16,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                    padding: 12,
+                                    overflowY: "auto",
+                                    zIndex: 10,
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Menu
+                                    mode="inline"
+                                    items={buildMenu(d0.id)}
+                                    onClick={(item) => {
+                                        const id = Number(item.key);
+                                        window.location.href = `/search?menu=${id}`;
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
