@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {Menu, Spin} from "antd";
 import type {MenuProps} from "antd";
+import {Dispatch, SetStateAction} from "react";
 
 interface HubLevel {
     id: number;
@@ -13,7 +14,12 @@ interface HubLevel {
     depth: number;
 }
 
-export default function CatalogMenu() {
+interface PopUpCatalogMenuProps {
+    open: boolean;
+    setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -25,6 +31,8 @@ export default function CatalogMenu() {
                 setLoading(false);
             });
     }, []);
+
+    if (!open) return null;
 
     if (loading) {
         return (
@@ -44,7 +52,7 @@ export default function CatalogMenu() {
 
             return {
                 key: String(d0.id),
-                icon: d0.icon ? <img src={d0.icon} style={{width: 20}} /> : undefined,
+                icon: d0.icon ? <img src={d0.icon} style={{width: 20}}/> : undefined,
                 label: d0.label,
 
                 children: childrenLevel1.map(l1 => {
@@ -53,12 +61,12 @@ export default function CatalogMenu() {
                     if (childrenLevel2.length > 0) {
                         return {
                             key: String(l1.id),
-                            icon: l1.icon ? <img src={l1.icon} style={{width: 18}} /> : undefined,
+                            icon: l1.icon ? <img src={l1.icon} style={{width: 18}}/> : undefined,
                             label: l1.label,
 
                             children: childrenLevel2.map(l2 => ({
                                 key: String(l2.id),
-                                icon: l2.icon ? <img src={l2.icon} style={{width: 16}} /> : undefined,
+                                icon: l2.icon ? <img src={l2.icon} style={{width: 16}}/> : undefined,
                                 label: l2.label,
                             })),
                         };
@@ -66,7 +74,7 @@ export default function CatalogMenu() {
 
                     return {
                         key: String(l1.id),
-                        icon: l1.icon ? <img src={l1.icon} style={{width: 18}} /> : undefined,
+                        icon: l1.icon ? <img src={l1.icon} style={{width: 18}}/> : undefined,
                         label: l1.label,
                     };
                 }),
@@ -74,15 +82,47 @@ export default function CatalogMenu() {
         });
 
     return (
-        <Menu
-            style={{width: 350}}
-            mode="vertical"
-            triggerSubMenuAction="hover"
-            items={buildMenuTree()}
-            onClick={(item) => {
-                const id = Number(item.key);
-                window.location.href = `/search?menu=${id}`;
-            }}
-        />
+        <>
+            <div
+                onMouseEnter={() => setOpen(true)}
+                style={{
+                    position: "absolute",
+                    top: 70,
+                    left: 0,
+                    width: "100%",
+                    height: 32,
+                    background: "transparent",
+                    pointerEvents: "auto",
+                    zIndex: 1000,
+                }}
+            />
+
+            <div
+                onMouseEnter={() => setOpen(true)}
+                onMouseLeave={() => setOpen(false)}
+                style={{
+                    position: "absolute",
+                    top: 102,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "clamp(320px, 90vw, 1416px)",
+                    background: "#fff",
+                    borderRadius: 28,
+                    padding: 20,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    zIndex: 1000,
+                }}
+            >
+                <Menu style={{width: 350}}
+                      mode="vertical"
+                      triggerSubMenuAction="hover"
+                      items={buildMenuTree()}
+                      onClick={(item) => {
+                          const id = Number(item.key);
+                          window.location.href = `/search?menu=${id}`;
+                      }}
+                />
+            </div>
+        </>
     );
 }
