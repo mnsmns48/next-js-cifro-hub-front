@@ -25,7 +25,7 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
                 background: "#4a4a4a",
                 borderRadius: 18,
                 textDecoration: "none",
-                width: 175,
+                width: "20%",
                 height: 55,
                 cursor: "pointer",
             }}

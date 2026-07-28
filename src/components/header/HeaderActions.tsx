@@ -17,7 +17,7 @@ export default function HeaderActions() {
     ];
 
     return (
-        <div style={{display: "flex", gap: 25, padding: 20}}>
+        <div style={{display: "flex", gap: 16, width: "40%"}}>
             {actions.map((a) => (
                 <IconButton key={a.label} icon={a.icon} label={a.label}/>
             ))}

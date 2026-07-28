@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {Menu, Spin} from "antd";
 import type {MenuProps} from "antd";
 import {Dispatch, SetStateAction} from "react";
+import "../css/CardsCatalogMenu.css"
 
 interface HubLevel {
     id: number;
@@ -100,7 +101,9 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
             <div
                 onMouseEnter={() => setOpen(true)}
                 onMouseLeave={() => setOpen(false)}
+                className="card-catalog-menu"
                 style={{
+
                     position: "absolute",
                     top: 102,
                     left: "50%",
