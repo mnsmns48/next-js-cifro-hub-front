@@ -3,6 +3,7 @@
 import {useState, useEffect, useRef} from "react";
 import ProductCard from "@/components/ProductCard";
 import {WarningOutlined} from "@ant-design/icons";
+import ServerError from "@/components/ServerError";
 
 interface Product {
     id: number;
@@ -11,6 +12,7 @@ interface Product {
     preview?: string;
     pics?: string[];
 }
+
 
 export default function InfiniteProductFeed() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -63,7 +65,6 @@ export default function InfiniteProductFeed() {
         }
     }
 
-
     useEffect(() => {
         const id = setTimeout(() => {
             void loadProducts(true);
@@ -81,7 +82,6 @@ export default function InfiniteProductFeed() {
 
         return () => clearInterval(id);
     }, [error]);
-
 
     useEffect(() => {
         if (!sentinelRef.current || error) return;
@@ -106,48 +106,26 @@ export default function InfiniteProductFeed() {
     return (
         <>
             {error ? (
-                <div style={{
-                    textAlign: "center",
-                    padding: "30px 20px",
-                    background: "#fff4f4",
-                    border: "1px solid #ffd6d6",
-                    borderRadius: 12,
-                    fontSize: 20,
-                    fontWeight: 500,
-                    maxWidth: 600,
-                    margin: "40px auto"
-                }}>
-                    База недоступна
-
-                    <div style={{marginTop: 12, fontSize: 28}}>
-                        <WarningOutlined/>
-                    </div>
-                </div>
-
+                <ServerError/>
             ) : (
                 <>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                            gap: 12,
-                            padding: "20px",
-                            background: "#fafafa",
-                            borderRadius: 16,
-                        }}
-                    >
+                    <div style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 12,
+                        justifyContent: "space-between",
+                        alignItems: "space-between",
+                    }}>
                         {products.map(p => (
-                            <ProductCard
-                                key={p.id}
-                                title={p.title}
-                                price={p.output_price}
-                                image={p.preview || (p.pics?.[0] ?? "/images/placeholder.jpg")}
-                            />
+                            <div key={p.id} style={{width: 190, flex: "0 0 auto"}}>
+                                <ProductCard title={p.title}
+                                             price={p.output_price}
+                                             image={p.preview || (p.pics?.[0] ?? "/images/placeholder.jpg")}/>
+                            </div>
                         ))}
                     </div>
 
                     <div ref={sentinelRef} style={{height: 1}}/>
-
 
                     {loading && (
                         <div style={{textAlign: "center", padding: 20}}>

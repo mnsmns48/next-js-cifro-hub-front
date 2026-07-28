@@ -1,0 +1,7 @@
+.card-catalog-menu .ant-card-body {
+    padding: 0 !important;
+}
+
+.card-catalog-menu .ant-menu {
+    border-inline-end: none !important;
+}

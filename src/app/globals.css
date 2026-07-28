@@ -20,21 +20,18 @@ a {
 
 
 :root {
-    /* Шрифты */
     --font-main: "GTEestiProText-Medium", sans-serif;
     --font-regular: 400;
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
 
-    /* Цвета */
     --color-primary: #ffd400;
     --color-secondary: #fff;
     --color-border: #e5e5e5;
     --color-text: #000;
     --color-text-secondary: #707f8d;
 
-    /* Отступы */
     --spacing-xs: 4px;
     --spacing-s: 8px;
     --spacing-m: 12px;
@@ -42,22 +39,15 @@ a {
     --spacing-xl: 24px;
     --spacing-xxl: 32px;
 
-    /* Контейнеры */
     --content-max-width: 1280px;
     --content-padding: 16px;
 
-    /* Хедер */
     --header-top-height: 40px;
     --header-bottom-height: 64px;
 
-    /* Анимации */
     --transition-fast: 0.15s ease;
     --transition-medium: 0.25s ease;
 }
-
-/* ================================
-   Глобальные утилиты
-   ================================ */
 
 .container {
     max-width: var(--content-max-width);

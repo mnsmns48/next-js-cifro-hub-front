@@ -11,8 +11,8 @@ interface ProductCardProps {
 export default function ProductCard({title, price, image}: ProductCardProps) {
     return (
         <Card hoverable style={{
-            width: 210,
-            height: 360,
+            width: 190,
+            height: 300,
             flex: "0 0 auto",
             borderRadius: 16,
             overflow: "hidden",
@@ -22,12 +22,11 @@ export default function ProductCard({title, price, image}: ProductCardProps) {
               cover={
                   <div
                       style={{
-                          height: 180,
-                          padding: 15,
+                          height: 150,
+                          paddingTop: 6,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-
                       }}
                   >
                       <img src={image}
@@ -41,12 +40,10 @@ export default function ProductCard({title, price, image}: ProductCardProps) {
                       />
                   </div>
               }
-
         >
             <div
                 style={{
                     fontSize: 13,
-                    fontWeight: 400,
                     marginBottom: 6,
                     height: 22,
                     whiteSpace: "nowrap",
@@ -57,9 +54,9 @@ export default function ProductCard({title, price, image}: ProductCardProps) {
                 {title}
             </div>
 
-            <div style={{height: 20, display: "flex", alignItems: "center"}}>
-                <Rate disabled defaultValue={4} style={{fontSize: 14}}/>
-            </div>
+            {/*<div style={{height: 20, display: "flex", alignItems: "center"}}>*/}
+            {/*    <Rate disabled defaultValue={4} style={{fontSize: 14}}/>*/}
+            {/*</div>*/}
 
             <div style={{
                 fontSize: 20,

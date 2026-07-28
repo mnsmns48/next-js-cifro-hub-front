@@ -20,7 +20,7 @@ export default function InfoSlider() {
     return (
         <div style={{
             height: 40,
-            minWidth: 645,
+            minWidth: "30%",
             overflow: "hidden",
             borderRadius: 18,
             display: "flex",

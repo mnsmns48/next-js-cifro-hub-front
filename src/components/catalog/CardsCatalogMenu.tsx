@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, Spin, Menu } from "antd";
-import type { MenuProps } from "antd";
+import {useEffect, useState} from "react";
+import {Card, Spin, Menu} from "antd";
+import type {MenuProps} from "antd";
+import "../css/CardsCatalogMenu.css"
+import Image from "next/image";
 
 interface HubLevel {
     id: number;
@@ -29,8 +31,8 @@ export default function CardsCatalogMenu() {
 
     if (loading) {
         return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <Spin size="large" />
+            <div style={{padding: 40, textAlign: "center"}}>
+                <Spin size="small"/>
             </div>
         );
     }
@@ -60,75 +62,82 @@ export default function CardsCatalogMenu() {
     };
 
     return (
-        <div
-            style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                gap: 20,
-                padding: 10,
-            }}
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gap: 12,
+        }}
         >
             {depth0.map(d0 => {
                 const isExpanded = expandedCardId === d0.id;
 
                 return (
-                    <div key={d0.id} style={{ position: "relative" }}>
-                        <Card
-                            hoverable
-                            style={{
-                                width: "100%",
-                                height: 220,
-                                borderRadius: 16,
-                                cursor: "pointer",
-                                overflow: "hidden",
-                            }}
-                            onClick={() => {
-                                setExpandedCardId(isExpanded ? null : d0.id);
-                            }}
-                            cover={
-                                d0.icon ? (
-                                    <img
-                                        src={d0.icon}
-                                        alt={d0.label}
-                                        style={{
-                                            width: "100%",
-                                            height: 120,
-                                            objectFit: "contain",
-                                            padding: 10,
-                                        }}
-                                    />
-                                ) : null
-                            }
+                    <div key={d0.id} style={{position: "relative"}}>
+                        <Card hoverable
+                              className="card-catalog-menu"
+                              style={{
+                                  height: 140,
+                                  borderRadius: 28,
+                                  cursor: "pointer",
+                                  overflow: "hidden",
+                              }}
+                              onClick={() => {
+                                  setExpandedCardId(isExpanded ? null : d0.id);
+                              }}
+                              cover={
+                                  d0.icon ? (
+                                      <img src={d0.icon}
+                                           alt={d0.label}
+                                           style={{
+                                               width: "100%",
+                                               height: 100,
+                                               objectFit: "contain",
+                                               padding: 20,
+                                           }}
+                                      />
+                                  ) : null
+                              }
                         >
-                            <div
-                                style={{
-                                    fontSize: 16,
-                                    fontWeight: 600,
-                                    textAlign: "center",
-                                }}
-                            >
+                            <div style={{fontSize: 14, fontWeight: 600, textAlign: "center", padding: 0}}>
                                 {d0.label}
                             </div>
                         </Card>
 
-                        {/* Меню внутри карточки */}
                         {isExpanded && (
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    left: 0,
-                                    width: "100%",
-                                    height: "100%",
-                                    background: "rgba(255,255,255,0.98)",
-                                    borderRadius: 16,
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    padding: 12,
-                                    overflowY: "auto",
-                                    zIndex: 10,
-                                }}
-                                onClick={(e) => e.stopPropagation()}
+                            <div style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                minHeight: 140,
+                                background: "rgba(255,255,255,0.98)",
+                                borderRadius: 28,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                padding: 20,
+                                zIndex: 10,
+                            }}
+                                 className="card-catalog-menu"
+                                 onClick={(e) => e.stopPropagation()}
                             >
+                                <div style={{
+                                    display: "flex",
+                                    gap: 8,
+                                    paddingBottom: 8,
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}>
+                                    <Image
+                                        src={d0.icon ?? "/images/placeholder.jpg"}
+                                        alt={d0.label}
+                                        width={25}
+                                        height={25}
+                                        style={{ objectFit: "contain" }}
+                                    />
+
+                                    <div style={{fontWeight: 600, fontSize: 14, color: "#555555"}}>
+                                        {d0.label}
+                                    </div>
+                                </div>
                                 <Menu
                                     mode="inline"
                                     items={buildMenu(d0.id)}
