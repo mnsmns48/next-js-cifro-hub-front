@@ -1,0 +1,47 @@
+.header-search-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Мобильная кнопка */
+.header-search-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 28px;
+    border: 1px solid #ddd;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Иконка */
+.header-search-icon {
+    font-size: 20px;
+    color: #333;
+}
+
+/* Десктопный инпут */
+.header-search-input {
+    width: 100%;
+    height: 50px;
+    border-radius: 18px;
+    border: 1px solid #ddd;
+    padding: 0 16px;
+    font-size: 16px;
+    display: none; /* скрыт на мобильных */
+}
+
+/* Tablet */
+@media (min-width: 480px) {
+    .header-search-button {
+        display: none;
+    }
+
+    .header-search-input {
+        display: block;
+    }
+}

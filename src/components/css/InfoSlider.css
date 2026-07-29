@@ -1,0 +1,50 @@
+.info-slider {
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    background: transparent;
+}
+
+/* Лента */
+.info-slider-track {
+    display: flex;
+    gap: 40px;
+    white-space: nowrap;
+    animation: slide 12s linear infinite;
+}
+
+/* Элемент */
+.info-slider-item {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .info-slider {
+        height: 35px;
+    }
+
+    .info-slider-item {
+        font-size: 14px;
+    }
+}
+
+/* Mobile — скрываем полностью */
+@media (max-width: 480px) {
+    .info-slider {
+        display: none;
+    }
+}
+
+@keyframes slide {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}

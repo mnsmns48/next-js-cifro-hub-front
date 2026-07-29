@@ -5,6 +5,7 @@ import {Card, Spin, Menu} from "antd";
 import type {MenuProps} from "antd";
 import "../css/CardsCatalogMenu.css"
 import Image from "next/image";
+import {useMediaQuery} from "@/hooks/useMediaQuery";
 
 interface HubLevel {
     id: number;
@@ -21,6 +22,9 @@ export default function CardsCatalogMenu() {
     const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
 
     const containerRef = useRef<HTMLDivElement | null>(null);
+
+    const { isMobile } = useMediaQuery();
+
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
@@ -82,7 +86,8 @@ export default function CardsCatalogMenu() {
                             label: (
                                 <div style={{display: "flex", alignItems: "center", gap: 8}}>
                                     {l2.icon && (
-                                        <img src={l2.icon} alt={l2.label}
+                                        <img src={l2.icon}
+                                             alt={l2.label}
                                              style={{width: 16, height: 16, objectFit: "contain"}}
                                         />
                                     )}
@@ -114,9 +119,9 @@ export default function CardsCatalogMenu() {
                     <div
                         key={d0.id}
                         style={{
-                            minWidth: 190,
-                            maxWidth: 220,
-                            flex: "1 1 190px",
+                            minWidth: isMobile ? 160 : 190,
+                            maxWidth: isMobile ? 180 : 220,
+                            flex: isMobile ? "1 1 160px" : "1 1 190px",
                             position: "relative",
                         }}
                     >
@@ -124,7 +129,7 @@ export default function CardsCatalogMenu() {
                             hoverable
                             className="card-catalog-menu"
                             style={{
-                                height: 140,
+                                height: isMobile ? 120 : 140,
                                 borderRadius: 28,
                                 cursor: "pointer",
                                 overflow: "hidden",
@@ -139,9 +144,9 @@ export default function CardsCatalogMenu() {
                                         alt={d0.label}
                                         style={{
                                             width: "100%",
-                                            height: 100,
+                                            height: isMobile ? 80 : 100,
                                             objectFit: "contain",
-                                            padding: 20,
+                                            padding: isMobile ? 12 : 20,
                                         }}
                                     />
                                 ) : null
@@ -149,7 +154,7 @@ export default function CardsCatalogMenu() {
                         >
                             <div
                                 style={{
-                                    fontSize: 14,
+                                    fontSize: isMobile ? 12 : 14,
                                     fontWeight: 600,
                                     textAlign: "center",
                                     padding: 0,
@@ -166,11 +171,11 @@ export default function CardsCatalogMenu() {
                                     top: 0,
                                     left: 0,
                                     width: "100%",
-                                    minHeight: 140,
+                                    minHeight: isMobile ? 120 : 140,
                                     background: "rgba(255,255,255,0.98)",
                                     borderRadius: 28,
                                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    padding: 20,
+                                    padding: isMobile ? 16 : 20,
                                     zIndex: 10,
                                 }}
                                 className="card-catalog-menu"
@@ -188,15 +193,15 @@ export default function CardsCatalogMenu() {
                                     <Image
                                         src={d0.icon ?? "/images/placeholder.jpg"}
                                         alt={d0.label}
-                                        width={25}
-                                        height={25}
-                                        style={{objectFit: "contain"}}
+                                        width={isMobile ? 22 : 25}
+                                        height={isMobile ? 22 : 25}
+                                        style={{ objectFit: "contain" }}
                                     />
 
                                     <div
                                         style={{
                                             fontWeight: 600,
-                                            fontSize: 14,
+                                            fontSize: isMobile ? 13 : 14,
                                             color: "#555555",
                                         }}
                                     >
@@ -219,4 +224,5 @@ export default function CardsCatalogMenu() {
             })}
         </div>
     );
+
 }
