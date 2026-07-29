@@ -64,17 +64,37 @@ export default function CardsCatalogMenu() {
 
             return {
                 key: String(l1.id),
-                label: l1.label,
+                label: (
+                    <div style={{display: "flex", alignItems: "center", gap: 8}}>
+                        {l1.icon && (
+                            <img src={l1.icon}
+                                 alt={l1.label}
+                                 style={{width: 18, height: 18, objectFit: "contain"}}
+                            />
+                        )}
+                        {l1.label}
+                    </div>
+                ),
                 children:
                     level2.length > 0
                         ? level2.map(l2 => ({
                             key: String(l2.id),
-                            label: l2.label,
+                            label: (
+                                <div style={{display: "flex", alignItems: "center", gap: 8}}>
+                                    {l2.icon && (
+                                        <img src={l2.icon} alt={l2.label}
+                                             style={{width: 16, height: 16, objectFit: "contain"}}
+                                        />
+                                    )}
+                                    {l2.label}
+                                </div>
+                            ),
                         }))
                         : undefined,
             };
         });
     };
+
 
     return (
         <div

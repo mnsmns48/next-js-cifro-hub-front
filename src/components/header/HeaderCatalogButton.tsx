@@ -1,23 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Image } from "antd";
-import { HolderOutlined } from "@ant-design/icons";
+import {usePathname} from "next/navigation";
+import {Image} from "antd";
+import {HolderOutlined} from "@ant-design/icons";
+import {useMediaQuery} from "@/hooks/useMediaQuery";
 
 interface HeaderCatalogButtonProps {
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProps) {
+export default function HeaderCatalogButton({setOpen}: HeaderCatalogButtonProps) {
     const pathname = usePathname();
     const target = pathname === "/catalog" ? "/" : "/catalog";
+
+    const {isMobile, isTablet} = useMediaQuery();
+
+    const handleMouseEnter = () => {
+        if (!isMobile) setOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+        if (!isMobile) setOpen(false);
+    };
+
+    // 📱 MOBILE — только иконка
+    if (isMobile) {
+        return (
+            <Link
+                href={target}
+                style={{
+                    width: "100%",
+                    height: 50,
+                    background: "#4a4a4a",
+                    borderRadius: 18,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                }}
+            >
+                <HolderOutlined style={{fontSize: 26, color: "#e2fc2a"}}/>
+            </Link>
+        );
+    }
+
+
+    const height = isTablet ? 50 : 60;
+    const logoSize = isTablet ? 55 : 70;
+    const fontSize = isTablet ? 14 : 16;
+    const iconSize = isTablet ? 16 : 20;
+    const paddingLeft = isTablet ? 10 : 14;
+    const paddingRight = isTablet ? 10 : 14;
 
     return (
         <Link
             href={target}
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             style={{
                 display: "flex",
                 alignItems: "center",
@@ -25,8 +65,8 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
                 background: "#4a4a4a",
                 borderRadius: 18,
                 textDecoration: "none",
-                width: "20%",
-                height: 55,
+                width: "100%",
+                height,
                 cursor: "pointer",
             }}
         >
@@ -34,7 +74,7 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
                 src="/logo-cifro-hub.svg"
                 alt="CifroHub Logo"
                 preview={false}
-                style={{ width: 65, paddingLeft: 12 }}
+                style={{width: logoSize, paddingLeft}}
             />
 
             <div
@@ -42,14 +82,14 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
-                    paddingRight: 12,
+                    paddingRight,
                     color: "#fff",
-                    fontSize: 15,
+                    fontSize,
                     fontWeight: 500,
                 }}
             >
-                <span style={{ color: "#e2fc2a", fontSize: 18 }}>
-                    <HolderOutlined />
+                <span style={{color: "#e2fc2a", fontSize: iconSize}}>
+                    <HolderOutlined/>
                 </span>
                 КАТАЛОГ
             </div>

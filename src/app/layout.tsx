@@ -10,7 +10,7 @@ export default function RootLayout({children}: { children: ReactNode }) {
         <html lang="ru">
         <body>
         <div className="layout-wrapper">
-            <div style={{display: "flex", gap: 8}}>
+            <div style={{display: "flex", gap: 8}} className="min-width-layout">
                 <div style={{marginTop: 10}}>
                 </div>
                 <div style={{marginTop: 10}}>

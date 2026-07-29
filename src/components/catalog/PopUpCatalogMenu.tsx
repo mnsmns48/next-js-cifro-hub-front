@@ -5,6 +5,7 @@ import {Menu, Spin} from "antd";
 import type {MenuProps} from "antd";
 import {Dispatch, SetStateAction} from "react";
 import "../css/CardsCatalogMenu.css"
+import {useMediaQuery} from "@/hooks/useMediaQuery";
 
 interface HubLevel {
     id: number;
@@ -24,6 +25,8 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { isMobile } = useMediaQuery();
+
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
             .then(res => res.json())
@@ -34,6 +37,8 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
     }, []);
 
     if (!open) return null;
+
+    if (isMobile) return null;
 
     if (loading) {
         return (
@@ -103,7 +108,6 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                 onMouseLeave={() => setOpen(false)}
                 className="card-catalog-menu"
                 style={{
-
                     position: "absolute",
                     top: 102,
                     left: "50%",
@@ -114,6 +118,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                     padding: 20,
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                     zIndex: 1000,
+                    display: open ? "block" : "none",
                 }}
             >
                 <Menu style={{width: 350}}

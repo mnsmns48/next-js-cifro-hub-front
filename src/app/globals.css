@@ -13,6 +13,7 @@ body {
     font-family: var(--font-main);
 }
 
+
 a {
     text-decoration: none;
     color: inherit;
@@ -81,4 +82,8 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.min-width-layout {
+    min-width: 436px;
 }
