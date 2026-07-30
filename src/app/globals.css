@@ -57,10 +57,22 @@ a {
 }
 
 .layout-wrapper {
-    width: clamp(320px, 90vw, 1416px);
+    width: 100%;
+    max-width: 1416px;
     margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 
+@media (max-width: 1024px) {
+    .layout-wrapper {
+        margin: 0;
+        width: 100%;
+        max-width: none;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
 
 .page-container {
     width: 88%;

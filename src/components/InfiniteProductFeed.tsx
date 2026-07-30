@@ -2,7 +2,6 @@
 
 import {useState, useEffect, useRef} from "react";
 import ProductCard from "@/components/ProductCard";
-import {WarningOutlined} from "@ant-design/icons";
 import ServerError from "@/components/ServerError";
 
 interface Product {

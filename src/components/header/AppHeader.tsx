@@ -22,10 +22,7 @@ export default function AppHeader() {
     return (
         <>
             {catalogOpen && showPopUpMenu && (
-                <div
-                    className="catalog-overlay"
-                    onMouseEnter={() => setCatalogOpen(false)}
-                />
+                <div className="catalog-overlay" onMouseEnter={() => setCatalogOpen(false)}/>
             )}
 
             <div className="layout-wrapper app-header-wrapper">
