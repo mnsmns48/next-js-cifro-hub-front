@@ -59,43 +59,15 @@ a {
 .layout-wrapper {
     width: 100%;
     max-width: 1416px;
-    margin: 0 auto;
-    padding-left: 16px;
-    padding-right: 16px;
+    min-width: 436px;
+    margin: 10px auto 0;
+    padding: 0 10px;
 }
+
 
 @media (max-width: 1024px) {
     .layout-wrapper {
-        margin: 0;
-        width: 100%;
         max-width: none;
-        padding-left: 12px;
-        padding-right: 12px;
+        padding: 0 5px;
     }
-}
-
-.page-container {
-    width: 88%;
-}
-
-
-.flex {
-    display: flex;
-    align-items: center;
-}
-
-.flex-between {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.min-width-layout {
-    min-width: 436px;
 }

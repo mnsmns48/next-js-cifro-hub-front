@@ -25,7 +25,7 @@ export default function AppHeader() {
                 <div className="catalog-overlay" onMouseEnter={() => setCatalogOpen(false)}/>
             )}
 
-            <div className="layout-wrapper app-header-wrapper">
+            <div className="app-header-wrapper">
                 <div className="app-header">
                     <div className="header-catalog">
                         <HeaderCatalogButton setOpen={setCatalogOpen}/>
