@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Menu, Spin } from "antd";
-import type { MenuProps } from "antd";
-import { Dispatch, SetStateAction } from "react";
+import {useEffect, useState} from "react";
+import {Menu, Spin} from "antd";
+import type {MenuProps} from "antd";
+import {Dispatch, SetStateAction} from "react";
 
 import "../css/PopUpCatalogMenu.css";
 
@@ -21,7 +21,7 @@ interface PopUpCatalogMenuProps {
     setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProps) {
+export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,7 +39,7 @@ export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProp
     if (loading) {
         return (
             <div className="popup-loading">
-                <Spin size="small" />
+                <Spin size="small"/>
             </div>
         );
     }
@@ -54,7 +54,7 @@ export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProp
 
             return {
                 key: String(d0.id),
-                icon: d0.icon ? <img src={d0.icon} className="menu-icon-lvl0" /> : undefined,
+                icon: d0.icon ? <img src={d0.icon} className="menu-icon-lvl0"/> : undefined,
                 label: d0.label,
 
                 children: childrenLevel1.map(l1 => {
@@ -63,12 +63,12 @@ export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProp
                     if (childrenLevel2.length > 0) {
                         return {
                             key: String(l1.id),
-                            icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1" /> : undefined,
+                            icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1"/> : undefined,
                             label: l1.label,
 
                             children: childrenLevel2.map(l2 => ({
                                 key: String(l2.id),
-                                icon: l2.icon ? <img src={l2.icon} className="menu-icon-lvl2" /> : undefined,
+                                icon: l2.icon ? <img src={l2.icon} className="menu-icon-lvl2"/> : undefined,
                                 label: l2.label,
                             })),
                         };
@@ -76,7 +76,7 @@ export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProp
 
                     return {
                         key: String(l1.id),
-                        icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1" /> : undefined,
+                        icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1"/> : undefined,
                         label: l1.label,
                     };
                 }),
@@ -85,27 +85,17 @@ export default function PopUpCatalogMenu({ open, setOpen }: PopUpCatalogMenuProp
 
     return (
         <>
-            {/* Hover zone */}
-            <div
-                className="popup-hover-zone"
-                onMouseEnter={() => setOpen(true)}
-            />
-
-            {/* Popup menu */}
-            <div
-                className="popup-catalog-menu"
-                onMouseEnter={() => setOpen(true)}
-                onMouseLeave={() => setOpen(false)}
-            >
-                <Menu
-                    className="popup-menu"
-                    mode="vertical"
-                    triggerSubMenuAction="hover"
-                    items={buildMenuTree()}
-                    onClick={(item) => {
-                        const id = Number(item.key);
-                        window.location.href = `/search?menu=${id}`;
-                    }}
+            <div className="popup-hover-zone" onMouseEnter={() => setOpen(true)}/>
+            <div className="popup-catalog-menu"
+                 onMouseEnter={() => setOpen(true)}
+                 onMouseLeave={() => setOpen(false)}>
+                <Menu mode="vertical"
+                      triggerSubMenuAction="hover"
+                      items={buildMenuTree()}
+                      onClick={(item) => {
+                          const id = Number(item.key);
+                          window.location.href = `/search?menu=${id}`;
+                      }}
                 />
             </div>
         </>
