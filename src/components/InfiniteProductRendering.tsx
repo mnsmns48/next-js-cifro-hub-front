@@ -13,7 +13,7 @@ interface Product {
 }
 
 
-export default function InfiniteProductFeed() {
+export default function InfiniteProductRendering() {
     const [products, setProducts] = useState<Product[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const [hasMore, setHasMore] = useState(true);

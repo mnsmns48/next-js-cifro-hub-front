@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Card, Spin, Menu } from "antd";
-import type { MenuProps } from "antd";
+import {useEffect, useState, useRef} from "react";
+import {Card, Spin, Menu} from "antd";
+import type {MenuProps} from "antd";
 import Image from "next/image";
 
 import "../css/CardsCatalogMenu.css";
@@ -47,7 +47,7 @@ export default function CardsCatalogMenu() {
     if (loading) {
         return (
             <div className="cards-loading">
-                <Spin size="small" />
+                <Spin size="small"/>
             </div>
         );
     }
@@ -67,7 +67,7 @@ export default function CardsCatalogMenu() {
                 label: (
                     <div className="menu-item">
                         {l1.icon && (
-                            <img src={l1.icon} alt={l1.label} className="menu-icon-lvl1" />
+                            <img src={l1.icon} alt={l1.label} className="menu-icon-lvl1"/>
                         )}
                         {l1.label}
                     </div>
@@ -79,7 +79,7 @@ export default function CardsCatalogMenu() {
                             label: (
                                 <div className="menu-item">
                                     {l2.icon && (
-                                        <img src={l2.icon} alt={l2.label} className="menu-icon-lvl2" />
+                                        <img src={l2.icon} alt={l2.label} className="menu-icon-lvl2"/>
                                     )}
                                     {l2.label}
                                 </div>
@@ -120,24 +120,22 @@ export default function CardsCatalogMenu() {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="expanded-header">
-                                    <Image
-                                        src={d0.icon ?? "/images/placeholder.jpg"}
-                                        alt={d0.label}
-                                        width={25}
-                                        height={25}
-                                        className="expanded-icon"
+                                    <Image src={d0.icon ?? "/images/placeholder.jpg"}
+                                           alt={d0.label}
+                                           width={25}
+                                           height={25}
+                                           className="expanded-icon"
                                     />
 
                                     <div className="expanded-title">{d0.label}</div>
                                 </div>
 
-                                <Menu
-                                    mode="inline"
-                                    items={buildMenu(d0.id)}
-                                    onClick={(item) => {
-                                        const id = Number(item.key);
-                                        window.location.href = `/search?menu=${id}`;
-                                    }}
+                                <Menu mode="inline"
+                                      items={buildMenu(d0.id)}
+                                      onClick={(item) => {
+                                          const id = Number(item.key);
+                                          window.location.href = `/search?menu=${id}`;
+                                      }}
                                 />
                             </div>
                         )}
