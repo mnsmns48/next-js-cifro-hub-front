@@ -26,13 +26,22 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
-            .then(res => res.json())
-            .then(data => {
-                setLevels(data);
+        async function loadLevels() {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setLevels(data);
+                } else {
+                }
+            } finally {
                 setLoading(false);
-            });
+            }
+        }
+
+        void loadLevels();
     }, []);
+
 
     if (!open) return null;
 
