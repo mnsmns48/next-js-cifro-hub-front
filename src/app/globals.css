@@ -57,33 +57,17 @@ a {
 }
 
 .layout-wrapper {
-    width: clamp(320px, 90vw, 1416px);
-    margin: 0 auto;
-}
-
-
-.page-container {
-    width: 88%;
-}
-
-
-.flex {
-    display: flex;
-    align-items: center;
-}
-
-.flex-between {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.min-width-layout {
+    width: 100%;
+    max-width: 1416px;
     min-width: 436px;
+    margin: 10px auto 0;
+    padding: 0 10px;
+}
+
+
+@media (max-width: 1024px) {
+    .layout-wrapper {
+        max-width: none;
+        padding: 0 5px;
+    }
 }

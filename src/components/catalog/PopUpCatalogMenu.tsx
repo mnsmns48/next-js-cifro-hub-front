@@ -4,8 +4,8 @@ import {useEffect, useState} from "react";
 import {Menu, Spin} from "antd";
 import type {MenuProps} from "antd";
 import {Dispatch, SetStateAction} from "react";
-import "../css/CardsCatalogMenu.css"
-import {useMediaQuery} from "@/hooks/useMediaQuery";
+
+import "../css/PopUpCatalogMenu.css";
 
 interface HubLevel {
     id: number;
@@ -25,24 +25,29 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const { isMobile } = useMediaQuery();
-
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
-            .then(res => res.json())
-            .then(data => {
-                setLevels(data);
+        async function loadLevels() {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setLevels(data);
+                } else {
+                }
+            } finally {
                 setLoading(false);
-            });
+            }
+        }
+
+        void loadLevels();
     }, []);
+
 
     if (!open) return null;
 
-    if (isMobile) return null;
-
     if (loading) {
         return (
-            <div style={{padding: 40, textAlign: "center"}}>
+            <div className="popup-loading">
                 <Spin size="small"/>
             </div>
         );
@@ -58,7 +63,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
 
             return {
                 key: String(d0.id),
-                icon: d0.icon ? <img src={d0.icon} style={{width: 20}}/> : undefined,
+                icon: d0.icon ? <img src={d0.icon} className="menu-icon-lvl0"/> : undefined,
                 label: d0.label,
 
                 children: childrenLevel1.map(l1 => {
@@ -67,12 +72,12 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                     if (childrenLevel2.length > 0) {
                         return {
                             key: String(l1.id),
-                            icon: l1.icon ? <img src={l1.icon} style={{width: 18}}/> : undefined,
+                            icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1"/> : undefined,
                             label: l1.label,
 
                             children: childrenLevel2.map(l2 => ({
                                 key: String(l2.id),
-                                icon: l2.icon ? <img src={l2.icon} style={{width: 16}}/> : undefined,
+                                icon: l2.icon ? <img src={l2.icon} className="menu-icon-lvl2"/> : undefined,
                                 label: l2.label,
                             })),
                         };
@@ -80,7 +85,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
 
                     return {
                         key: String(l1.id),
-                        icon: l1.icon ? <img src={l1.icon} style={{width: 18}}/> : undefined,
+                        icon: l1.icon ? <img src={l1.icon} className="menu-icon-lvl1"/> : undefined,
                         label: l1.label,
                     };
                 }),
@@ -89,40 +94,11 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
 
     return (
         <>
-            <div
-                onMouseEnter={() => setOpen(true)}
-                style={{
-                    position: "absolute",
-                    top: 70,
-                    left: 0,
-                    width: "100%",
-                    height: 32,
-                    background: "transparent",
-                    pointerEvents: "auto",
-                    zIndex: 1000,
-                }}
-            />
-
-            <div
-                onMouseEnter={() => setOpen(true)}
-                onMouseLeave={() => setOpen(false)}
-                className="card-catalog-menu"
-                style={{
-                    position: "absolute",
-                    top: 102,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "clamp(320px, 90vw, 1416px)",
-                    background: "#fff",
-                    borderRadius: 28,
-                    padding: 20,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    zIndex: 1000,
-                    display: open ? "block" : "none",
-                }}
-            >
-                <Menu style={{width: 350}}
-                      mode="vertical"
+            <div className="popup-hover-zone" onMouseEnter={() => setOpen(true)}/>
+            <div className="popup-catalog-menu"
+                 onMouseEnter={() => setOpen(true)}
+                 onMouseLeave={() => setOpen(false)}>
+                <Menu mode="vertical"
                       triggerSubMenuAction="hover"
                       items={buildMenuTree()}
                       onClick={(item) => {

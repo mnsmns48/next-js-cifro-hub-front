@@ -2,7 +2,6 @@
 
 import {useState, useEffect, useRef} from "react";
 import ProductCard from "@/components/ProductCard";
-import {WarningOutlined} from "@ant-design/icons";
 import ServerError from "@/components/ServerError";
 
 interface Product {
@@ -14,7 +13,7 @@ interface Product {
 }
 
 
-export default function InfiniteProductFeed() {
+export default function InfiniteProductRendering() {
     const [products, setProducts] = useState<Product[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const [hasMore, setHasMore] = useState(true);
