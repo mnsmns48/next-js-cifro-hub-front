@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Image } from "antd";
 import { HolderOutlined } from "@ant-design/icons";
 import { Dispatch, SetStateAction } from "react";
 
@@ -31,10 +30,9 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
             onMouseLeave={handleMouseLeave}
             className="header-catalog-link"
         >
-            <Image
+            <img
                 src="/logo-cifro-hub.svg"
                 alt="CifroHub Logo"
-                preview={false}
                 className="header-catalog-logo"
             />
 

@@ -2,7 +2,10 @@
 
 import {useState, useEffect, useRef} from "react";
 import ProductCard from "@/components/ProductCard";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
+
+import "./css/ProductGrid.css";
 
 interface Product {
     id: number;
@@ -17,13 +20,13 @@ export default function InfiniteProductRendering() {
     const [products, setProducts] = useState<Product[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const [hasMore, setHasMore] = useState(true);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     const sentinelRef = useRef<HTMLDivElement | null>(null);
 
     async function loadProducts(initial = false) {
-        if (loading) return;
+        if (!initial && loading) return;
         if (!initial && !hasMore) return;
 
         setLoading(true);
@@ -102,36 +105,32 @@ export default function InfiniteProductRendering() {
         return () => observer.disconnect();
     }, [cursor, hasMore, error]);
 
+    const isInitialLoad = loading && products.length === 0;
+    const skeletonCount = isInitialLoad ? 12 : 6;
+
     return (
         <>
             {error ? (
                 <ServerError/>
             ) : (
-                <>
-                    <div style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 12,
-                        justifyContent: "space-between",
-                        alignItems: "space-between",
-                    }}>
-                        {products.map(p => (
-                            <div key={p.id} style={{width: 190, flex: "0 0 auto"}}>
-                                <ProductCard title={p.title}
-                                             price={p.output_price}
-                                             image={p.preview || (p.pics?.[0] ?? "/images/placeholder.jpg")}/>
-                            </div>
+                <div className="product-grid">
+                        {products.map((p, index) => (
+                            <ProductCard key={p.id}
+                                         title={p.title}
+                                         price={p.output_price}
+                                         preview={p.preview}
+                                         pics={p.pics}
+                                         priority={index < 8}/>
                         ))}
-                    </div>
 
-                    <div ref={sentinelRef} style={{height: 1}}/>
+                    {loading &&
+                        Array.from({length: skeletonCount}).map((_, i) => (
+                            <ProductCardSkeleton key={`skeleton-${i}`}/>
+                        ))
+                    }
 
-                    {loading && (
-                        <div style={{textAlign: "center", padding: 20}}>
-                            Загрузка...
-                        </div>
-                    )}
-                </>
+                    <div ref={sentinelRef} className="product-grid-sentinel"/>
+                </div>
             )}
         </>
     );

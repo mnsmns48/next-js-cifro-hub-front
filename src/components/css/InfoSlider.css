@@ -7,22 +7,27 @@
     background: transparent;
 }
 
-/* Лента */
 .info-slider-track {
     display: flex;
-    gap: 40px;
-    white-space: nowrap;
-    animation: slide 12s linear infinite;
+    width: max-content;
+    animation: info-slider-scroll 20s linear infinite;
+    will-change: transform;
 }
 
-/* Элемент */
+.info-slider-group {
+    display: flex;
+    flex-shrink: 0;
+    gap: 40px;
+    padding-right: 40px;
+}
+
 .info-slider-item {
     font-size: 16px;
     color: #333;
     font-weight: 500;
+    white-space: nowrap;
 }
 
-/* Tablet */
 @media (max-width: 1024px) {
     .info-slider {
         height: 35px;
@@ -33,14 +38,19 @@
     }
 }
 
-/* Mobile — скрываем полностью */
 @media (max-width: 480px) {
     .info-slider {
         display: none;
     }
 }
 
-@keyframes slide {
+@media (prefers-reduced-motion: reduce) {
+    .info-slider-track {
+        animation: none;
+    }
+}
+
+@keyframes info-slider-scroll {
     from {
         transform: translateX(0);
     }
