@@ -48,6 +48,8 @@ a {
 
     --transition-fast: 0.15s ease;
     --transition-medium: 0.25s ease;
+
+    --mobile-tab-bar-height: 56px;
 }
 
 .container {
@@ -59,9 +61,13 @@ a {
 .layout-wrapper {
     width: 100%;
     max-width: 1416px;
-    min-width: 436px;
-    margin: 10px auto 0;
-    padding: 0 10px;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 10px 10px 0;
+}
+
+.layout-main {
+    margin-top: 12px;
 }
 
 
@@ -69,5 +75,11 @@ a {
     .layout-wrapper {
         max-width: none;
         padding: 0 5px;
+    }
+}
+
+@media (max-width: 768px) {
+    .layout-wrapper {
+        padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px) + 8px);
     }
 }

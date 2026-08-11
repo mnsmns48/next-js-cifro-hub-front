@@ -1,33 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { HolderOutlined } from "@ant-design/icons";
-import { Dispatch, SetStateAction } from "react";
+import {usePathname} from "next/navigation";
+import {HolderOutlined} from "@ant-design/icons";
+import {Dispatch, SetStateAction} from "react";
 
 import "../css/HeaderCatalogButton.css";
 
 interface HeaderCatalogButtonProps {
     setOpen: Dispatch<SetStateAction<boolean>>;
+    showPopUpMenu: boolean;
 }
 
-export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProps) {
+export default function HeaderCatalogButton({setOpen, showPopUpMenu}: HeaderCatalogButtonProps) {
     const pathname = usePathname();
     const target = pathname === "/catalog" ? "/" : "/catalog";
 
     const handleMouseEnter = () => {
-        setOpen(true);
-    };
-
-    const handleMouseLeave = () => {
-        setOpen(false);
+        if (showPopUpMenu) {
+            setOpen(true);
+        }
     };
 
     return (
         <Link
             href={target}
             onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
             className="header-catalog-link"
         >
             <img
@@ -38,7 +36,7 @@ export default function HeaderCatalogButton({ setOpen }: HeaderCatalogButtonProp
 
             <div className="header-catalog-text">
                 <span className="header-catalog-icon">
-                    <HolderOutlined />
+                    <HolderOutlined/>
                 </span>
                 КАТАЛОГ
             </div>

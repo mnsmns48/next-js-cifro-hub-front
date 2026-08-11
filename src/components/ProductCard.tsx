@@ -1,6 +1,6 @@
 "use client";
 
-import {memo, useEffect, useMemo, useState} from "react";
+import {memo, useEffect, useMemo, useState, type MouseEvent} from "react";
 import Image from "next/image";
 import {AlignCenterOutlined, CheckOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
 
@@ -41,6 +41,11 @@ function isRemoteUrl(url: string): boolean {
     return url.startsWith("http://") || url.startsWith("https://");
 }
 
+function canHoverGallery(): boolean {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
 interface ProductCardProps {
     title: string;
     price: string | number;
@@ -51,34 +56,79 @@ interface ProductCardProps {
 
 function ProductCard({title, price, preview, pics, priority = false}: ProductCardProps) {
     const candidates = useMemo(() => buildImageCandidates(preview, pics), [preview, pics]);
-    const [candidateIndex, setCandidateIndex] = useState(0);
+    const [failedUrls, setFailedUrls] = useState<string[]>([]);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [useNativeImg, setUseNativeImg] = useState(false);
-    const [showPlaceholder, setShowPlaceholder] = useState(candidates.length === 0);
     const [favorite, setFavorite] = useState(false);
     const [compare, setCompare] = useState(false);
     const [inCart, setInCart] = useState(false);
 
+    const images = useMemo(
+        () => candidates.filter((url) => !failedUrls.includes(url)),
+        [candidates, failedUrls],
+    );
+
     useEffect(() => {
-        setCandidateIndex(0);
+        setFailedUrls([]);
+        setActiveIndex(0);
         setUseNativeImg(false);
-        setShowPlaceholder(candidates.length === 0);
     }, [candidates]);
 
-    const currentUrl = candidates[candidateIndex] ?? null;
+    useEffect(() => {
+        if (activeIndex >= images.length) {
+            setActiveIndex(Math.max(0, images.length - 1));
+        }
+    }, [activeIndex, images.length]);
+
+    const showPlaceholder = images.length === 0;
+    const currentUrl = images[activeIndex] ?? null;
+    const hasGallery = images.length > 1;
 
     const handleImageError = () => {
-        if (!useNativeImg && currentUrl && isRemoteUrl(currentUrl)) {
+        if (!currentUrl) {
+            return;
+        }
+
+        if (!useNativeImg && isRemoteUrl(currentUrl)) {
             setUseNativeImg(true);
             return;
         }
 
-        if (candidateIndex < candidates.length - 1) {
-            setCandidateIndex(prev => prev + 1);
-            setUseNativeImg(false);
-            return;
-        }
+        setFailedUrls((prev) => (prev.includes(currentUrl) ? prev : [...prev, currentUrl]));
+        setUseNativeImg(false);
+    };
 
-        setShowPlaceholder(true);
+    const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+        if (!hasGallery || !canHoverGallery()) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        if (rect.width <= 0) return;
+
+        const ratio = (e.clientX - rect.left) / rect.width;
+        const nextIndex = Math.min(
+            images.length - 1,
+            Math.max(0, Math.floor(ratio * images.length)),
+        );
+
+        if (nextIndex !== activeIndex) {
+            setActiveIndex(nextIndex);
+            setUseNativeImg(false);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (!hasGallery) return;
+        setActiveIndex(0);
+        setUseNativeImg(false);
+    };
+
+    const handleMouseEnter = () => {
+        if (!hasGallery || !canHoverGallery()) return;
+
+        images.slice(1).forEach((url) => {
+            const img = new window.Image();
+            img.src = url;
+        });
     };
 
     const renderImage = () => {
@@ -129,7 +179,12 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
 
     return (
         <article className="product-card">
-            <div className="product-card__image-wrap">
+            <div
+                className="product-card__image-wrap"
+                onMouseEnter={handleMouseEnter}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+            >
                 <div className="product-card__actions">
                     <button
                         type="button"
@@ -137,7 +192,7 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
                         aria-label={favorite ? "Убрать из избранного" : "В избранное"}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setFavorite(prev => !prev);
+                            setFavorite((prev) => !prev);
                         }}
                     >
                         {favorite ? <StarFilled /> : <StarOutlined />}
@@ -149,7 +204,7 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
                         aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setCompare(prev => !prev);
+                            setCompare((prev) => !prev);
                         }}
                     >
                         <AlignCenterOutlined />
@@ -168,7 +223,7 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
                 className={`product-card__button${inCart ? " product-card__button--in-cart" : ""}`}
                 onClick={(e) => {
                     e.stopPropagation();
-                    setInCart(prev => !prev);
+                    setInCart((prev) => !prev);
                 }}
             >
                 {inCart ? <CheckOutlined className="product-card__button-icon"/> : <ShoppingCartOutlined className="product-card__button-icon"/>}

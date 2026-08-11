@@ -1,20 +1,22 @@
 "use client";
 
-import { SearchOutlined } from "@ant-design/icons";
-import "../css//HeaderSearch.css";
+import {SearchOutlined} from "@ant-design/icons";
+
+import "../css/HeaderSearch.css";
 
 export default function HeaderSearch() {
     return (
         <div className="header-search-wrapper">
-            <button className="header-search-button">
-                <SearchOutlined className="header-search-icon" />
-            </button>
+            <label className="header-search-field">
+                <SearchOutlined className="header-search-field__icon header-search-field__icon--search" aria-hidden/>
 
-            <input
-                type="text"
-                placeholder="Поиск..."
-                className="header-search-input"
-            />
+                <input
+                    type="search"
+                    placeholder="Поиск по сайту"
+                    className="header-search-field__input"
+                    aria-label="Поиск по сайту"
+                />
+            </label>
         </div>
     );
 }

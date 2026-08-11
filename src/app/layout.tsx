@@ -2,6 +2,7 @@ import type {ReactNode} from "react";
 
 import "./globals.css";
 import AppHeader from "@/components/header/AppHeader";
+import MobileTabBar from "@/components/header/MobileTabBar";
 import PageContainer from "@/components/PageContainer";
 
 
@@ -11,11 +12,12 @@ export default function RootLayout({children}: { children: ReactNode }) {
         <body>
         <div className="layout-wrapper">
             <AppHeader/>
-            <div style={{marginTop: 12}}>
+            <main className="layout-main">
                 <PageContainer>
                     {children}
                 </PageContainer>
-            </div>
+            </main>
+            <MobileTabBar/>
         </div>
         </body>
         </html>
