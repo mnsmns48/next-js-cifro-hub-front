@@ -7,10 +7,24 @@
 html,
 body {
     width: 100%;
+    max-width: 100%;
     min-height: 100%;
+    overflow-x: clip;
     background-color: #efefef;
     color: #000;
     font-family: var(--font-main);
+}
+
+body {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 
@@ -60,14 +74,17 @@ a {
 
 .layout-wrapper {
     width: 100%;
-    max-width: 1416px;
+    max-width: min(1416px, 100%);
     min-width: 0;
     margin: 0 auto;
     padding: 10px 10px 0;
+    overflow-x: clip;
+    flex: 1 0 auto;
 }
 
 .layout-main {
     margin-top: 12px;
+    margin-bottom: 12px;
 }
 
 
@@ -75,11 +92,5 @@ a {
     .layout-wrapper {
         max-width: none;
         padding: 0 5px;
-    }
-}
-
-@media (max-width: 768px) {
-    .layout-wrapper {
-        padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px) + 8px);
     }
 }

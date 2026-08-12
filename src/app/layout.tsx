@@ -2,6 +2,7 @@ import type {ReactNode} from "react";
 
 import "./globals.css";
 import AppHeader from "@/components/header/AppHeader";
+import AppFooter from "@/components/AppFooter";
 import MobileTabBar from "@/components/header/MobileTabBar";
 import PageContainer from "@/components/PageContainer";
 
@@ -17,8 +18,9 @@ export default function RootLayout({children}: { children: ReactNode }) {
                     {children}
                 </PageContainer>
             </main>
-            <MobileTabBar/>
         </div>
+        <AppFooter/>
+        <MobileTabBar/>
         </body>
         </html>
     );
