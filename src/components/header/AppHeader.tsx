@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {usePathname} from "next/navigation";
 
 import HeaderSearch from "@/components/header/HeaderSearch";
@@ -14,32 +14,10 @@ import "../css/AppHeader.css";
 
 export default function AppHeader() {
     const [catalogOpen, setCatalogOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
     const pathname = usePathname();
     const isCatalogPage = pathname === "/catalog";
 
     const showPopUpMenu = !isCatalogPage;
-
-    useEffect(() => {
-        const onScroll = () => {
-            setIsScrolled((prev) => {
-                if (window.scrollY > 16) {
-                    return true;
-                }
-
-                if (window.scrollY <= 4) {
-                    return false;
-                }
-
-                return prev;
-            });
-        };
-
-        onScroll();
-        window.addEventListener("scroll", onScroll, {passive: true});
-
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
 
     return (
         <>
@@ -47,7 +25,7 @@ export default function AppHeader() {
                 <div className="catalog-overlay" onClick={() => setCatalogOpen(false)}/>
             )}
 
-            <div className={`app-header-wrapper${isScrolled ? " app-header-wrapper--scrolled" : ""}${catalogOpen && showPopUpMenu ? " app-header-wrapper--catalog-open" : ""}`}>
+            <div className={`app-header-wrapper${catalogOpen && showPopUpMenu ? " app-header-wrapper--catalog-open" : ""}`}>
                 <div className="app-header">
                     <Link href="/" className="header-mobile-logo" aria-label="На главную">
                         <img

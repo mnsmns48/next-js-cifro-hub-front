@@ -118,7 +118,8 @@
 
 @media (max-width: 768px) {
     .app-footer {
-        padding: 20px 12px 28px;
+        /* Dark footer fills the area behind the floating tab bar */
+        padding: 20px 12px calc(20px + var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px) + 18px);
         margin-bottom: 0;
     }
 

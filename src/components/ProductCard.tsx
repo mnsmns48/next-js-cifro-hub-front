@@ -179,38 +179,38 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
 
     return (
         <article className="product-card">
+            <div className="product-card__actions">
+                <button
+                    type="button"
+                    className={`product-card__action-btn${favorite ? " product-card__action-btn--active" : ""}`}
+                    aria-label={favorite ? "Убрать из избранного" : "В избранное"}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setFavorite((prev) => !prev);
+                    }}
+                >
+                    {favorite ? <StarFilled /> : <StarOutlined />}
+                </button>
+
+                <button
+                    type="button"
+                    className={`product-card__action-btn${compare ? " product-card__action-btn--active" : ""}`}
+                    aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setCompare((prev) => !prev);
+                    }}
+                >
+                    <AlignCenterOutlined />
+                </button>
+            </div>
+
             <div
                 className="product-card__image-wrap"
                 onMouseEnter={handleMouseEnter}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                <div className="product-card__actions">
-                    <button
-                        type="button"
-                        className={`product-card__action-btn${favorite ? " product-card__action-btn--active" : ""}`}
-                        aria-label={favorite ? "Убрать из избранного" : "В избранное"}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setFavorite((prev) => !prev);
-                        }}
-                    >
-                        {favorite ? <StarFilled /> : <StarOutlined />}
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`product-card__action-btn${compare ? " product-card__action-btn--active" : ""}`}
-                        aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setCompare((prev) => !prev);
-                        }}
-                    >
-                        <AlignCenterOutlined />
-                    </button>
-                </div>
-
                 {renderImage()}
             </div>
 

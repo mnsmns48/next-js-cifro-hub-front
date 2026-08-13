@@ -21,12 +21,6 @@ body {
     flex-direction: column;
 }
 
-@media (max-width: 768px) {
-    body {
-        padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px));
-    }
-}
-
 
 a {
     text-decoration: none;
@@ -82,7 +76,7 @@ a {
 }
 
 .layout-main {
-    margin-top: 12px;
+    margin-top: 0;
     margin-bottom: 12px;
 }
 

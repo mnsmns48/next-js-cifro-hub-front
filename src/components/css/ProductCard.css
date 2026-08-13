@@ -55,12 +55,13 @@
 
 .product-card__actions {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 14px;
+    right: 14px;
     z-index: 2;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 4px;
 }
 
 .product-card__action-btn {
@@ -76,12 +77,12 @@
     font-size: 18px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .product-card__action-btn:hover {
-    transform: scale(1.08);
     color: #000;
+    background: #fff;
 }
 
 .product-card__action-btn--active {
@@ -182,6 +183,8 @@
     }
 
     .product-card__actions {
+        top: 8px;
+        right: 8px;
         gap: 4px;
     }
 
