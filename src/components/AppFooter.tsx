@@ -21,6 +21,7 @@ export default function AppFooter() {
                         <Link href="/" className="app-footer__logo-link" aria-label="На главную">
                             <Image
                                 src="/logo-cifro-hub.svg"
+                                loading="eager"
                                 alt="ЦифроХаб"
                                 width={40}
                                 height={40}
