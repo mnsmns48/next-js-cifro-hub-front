@@ -150,6 +150,7 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
                 <div className="product-card__image-inner">
                     <Image
                         key={`next-${currentUrl}`}
+                        loading="eager"
                         src={currentUrl}
                         alt={title}
                         fill
