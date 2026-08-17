@@ -71,7 +71,7 @@ a {
     max-width: min(1416px, 100%);
     min-width: 0;
     margin: 0 auto;
-    padding: 10px 10px 0;
+    padding: 0 10px;
     flex: 1 0 auto;
 }
 
