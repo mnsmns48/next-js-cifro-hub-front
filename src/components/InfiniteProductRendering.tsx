@@ -1,7 +1,7 @@
 "use client";
 
 import {useState, useEffect, useRef} from "react";
-import ProductCard from "@/components/ProductCard";
+import ProductCard, {type ShortSpec} from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 
@@ -13,6 +13,7 @@ interface Product {
     output_price: number;
     preview?: string;
     pics?: string[];
+    short_specs?: ShortSpec[];
 }
 
 
@@ -120,6 +121,7 @@ export default function InfiniteProductRendering() {
                                          price={p.output_price}
                                          preview={p.preview}
                                          pics={p.pics}
+                                         shortSpecs={p.short_specs}
                                          priority={index < 8}/>
                         ))}
 

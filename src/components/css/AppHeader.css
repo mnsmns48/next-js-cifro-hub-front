@@ -2,9 +2,31 @@
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: #efefef;
-    padding-top: 10px;
-    padding-bottom: 8px;
+    padding: 10px 0 18px;
+    background: linear-gradient(
+        to bottom,
+        #efefef 0,
+        rgba(239, 239, 239, 0.9) 10px,
+        rgba(239, 239, 239, 0) 34px
+    );
+}
+
+/* Fade scrolling cards beneath the floating glass header. */
+.app-header-wrapper::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 100vw;
+    height: 32px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+        to bottom,
+        rgba(239, 239, 239, 0.95),
+        rgba(239, 239, 239, 0)
+    );
+    z-index: 2;
+    pointer-events: none;
 }
 
 .app-header-wrapper::after {
@@ -14,7 +36,7 @@
 .app-header {
     position: relative;
     z-index: 3;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: saturate(180%) blur(28px);
     -webkit-backdrop-filter: saturate(180%) blur(28px);
     border: 1px solid rgba(255, 255, 255, 0.7);
@@ -41,6 +63,10 @@
 }
 
 .app-header-wrapper--catalog-open::after {
+    display: none;
+}
+
+.app-header-wrapper--catalog-open::before {
     display: none;
 }
 
@@ -135,7 +161,7 @@
         width: 56px;
         height: 50px;
         background: #4a4a4a;
-        border-radius: 18px;
+        border-radius: 16px;
     }
 
     .header-mobile-logo__image {

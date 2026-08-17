@@ -46,15 +46,53 @@ function canHoverGallery(): boolean {
     return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
+export interface ShortSpec {
+    title: string;
+    icon?: string | null;
+    text?: string | null;
+}
+
 interface ProductCardProps {
     title: string;
     price: string | number;
     preview?: string;
     pics?: string[];
+    shortSpecs?: ShortSpec[];
     priority?: boolean;
 }
 
-function ProductCard({title, price, preview, pics, priority = false}: ProductCardProps) {
+const MONTH_PATTERN =
+    "январ[ьяе]|феврал[ьяе]|марта?|апрел[ьяе]|ма[йяе]|июн[ьяе]|июл[ьяе]|август[ае]?|сентябр[ьяе]|октябр[ьяе]|ноябр[ьяе]|декабр[ьяе]";
+
+function formatSpecText(text?: string | null): string {
+    const value = text?.trim() ?? "";
+    if (!value || value.includes(":")) {
+        return value;
+    }
+
+    const monthMatch = value.match(new RegExp(`^(.+?)\\s+(${MONTH_PATTERN})(\\s+.*)?$`, "i"));
+    if (monthMatch) {
+        const rest = monthMatch[3] ?? "";
+        return `${monthMatch[1]}: ${monthMatch[2]}${rest}`;
+    }
+
+    const match = value.match(/^(.+?)\s+(\d.*)$/);
+    if (!match) {
+        return value;
+    }
+
+    return `${match[1]}: ${match[2]}`;
+}
+
+function isUsefulSpec(spec: ShortSpec): boolean {
+    const text = spec.text?.trim() ?? "";
+    if (!text) return false;
+
+    const lower = text.toLowerCase();
+    return !lower.includes("нет точной информации") && lower !== "unspecified";
+}
+
+function ProductCard({title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
     const candidates = useMemo(() => buildImageCandidates(preview, pics), [preview, pics]);
     const [failedUrls, setFailedUrls] = useState<string[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -83,6 +121,11 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
     const showPlaceholder = images.length === 0;
     const currentUrl = images[activeIndex] ?? null;
     const hasGallery = images.length > 1;
+    const visibleSpecs = useMemo(
+        () => shortSpecs.filter(isUsefulSpec).slice(0, 8),
+        [shortSpecs],
+    );
+    const [specsLeft, setSpecsLeft] = useState(false);
 
     const handleImageError = () => {
         if (!currentUrl) {
@@ -129,6 +172,13 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
             const img = new window.Image();
             img.src = url;
         });
+    };
+
+    const handleCardMouseEnter = (e: MouseEvent<HTMLElement>) => {
+        if (visibleSpecs.length === 0 || !canHoverGallery()) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        setSpecsLeft(rect.right + 220 > window.innerWidth);
     };
 
     const renderImage = () => {
@@ -179,7 +229,10 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
     };
 
     return (
-        <article className="product-card">
+        <article
+            className={`product-card${specsLeft ? " product-card--specs-left" : ""}`}
+            onMouseEnter={handleCardMouseEnter}
+        >
             <div className="product-card__actions">
                 <button
                     type="button"
@@ -214,6 +267,26 @@ function ProductCard({title, price, preview, pics, priority = false}: ProductCar
             >
                 {renderImage()}
             </div>
+
+            {visibleSpecs.length > 0 && (
+                <ul className="product-card__specs" aria-label="Краткие характеристики">
+                    {visibleSpecs.map((spec) => (
+                        <li key={spec.title} className="product-card__spec">
+                            {spec.icon ? (
+                                <span className="product-card__spec-icon-wrap">
+                                    <img
+                                        src={normalizeUrl(spec.icon)}
+                                        alt=""
+                                        aria-hidden
+                                        className="product-card__spec-icon"
+                                    />
+                                </span>
+                            ) : null}
+                            <span>{formatSpecText(spec.text)}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             <h3 className="product-card__title">{title}</h3>
 
