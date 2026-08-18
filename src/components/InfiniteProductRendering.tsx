@@ -25,11 +25,15 @@ export default function InfiniteProductRendering() {
     const [error, setError] = useState(false);
 
     const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const loadingRef = useRef(false);
+    const hasMoreRef = useRef(true);
+    const cursorRef = useRef<number | null>(null);
 
     async function loadProducts(initial = false) {
-        if (!initial && loading) return;
-        if (!initial && !hasMore) return;
+        if (loadingRef.current) return;
+        if (!initial && !hasMoreRef.current) return;
 
+        loadingRef.current = true;
         setLoading(true);
 
         try {
@@ -38,8 +42,8 @@ export default function InfiniteProductRendering() {
                 menu_levels: "0",
             });
 
-            if (!initial && cursor) {
-                params.append("cursor", cursor.toString());
+            if (!initial && cursorRef.current) {
+                params.append("cursor", cursorRef.current.toString());
             }
 
             const res = await fetch(
@@ -53,17 +57,21 @@ export default function InfiniteProductRendering() {
 
             const data = await res.json();
 
-            setProducts(prev => {
-                const merged = [...prev, ...data.products];
+            setProducts((prev) => {
+                const base = initial ? [] : prev;
+                const merged = [...base, ...data.products];
                 return merged.filter(
-                    (item, index, arr) => arr.findIndex(x => x.id === item.id) === index
+                    (item, index, arr) => arr.findIndex((x) => x.id === item.id) === index
                 );
             });
 
+            cursorRef.current = data.next_cursor;
+            hasMoreRef.current = Boolean(data.has_more);
             setCursor(data.next_cursor);
-            setHasMore(data.has_more);
+            setHasMore(Boolean(data.has_more));
             setError(false);
         } finally {
+            loadingRef.current = false;
             setLoading(false);
         }
     }
@@ -87,14 +95,14 @@ export default function InfiniteProductRendering() {
     }, [error]);
 
     useEffect(() => {
-        if (!sentinelRef.current || error) return;
+        if (error || products.length === 0) return;
+        if (!sentinelRef.current) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
-                const entry = entries[0];
-                if (entry.isIntersecting) {
-                    void loadProducts();
-                }
+                if (!entries[0]?.isIntersecting) return;
+                if (loadingRef.current || !hasMoreRef.current) return;
+                void loadProducts();
             },
             {
                 rootMargin: "200px",
@@ -104,7 +112,7 @@ export default function InfiniteProductRendering() {
         observer.observe(sentinelRef.current);
 
         return () => observer.disconnect();
-    }, [cursor, hasMore, error]);
+    }, [error, products.length === 0]);
 
     const isInitialLoad = loading && products.length === 0;
     const skeletonCount = isInitialLoad ? 12 : 6;

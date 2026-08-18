@@ -1,8 +1,8 @@
 "use client";
 
-import {memo, useEffect, useMemo, useState, type MouseEvent} from "react";
+import {memo, useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
 import Image from "next/image";
-import {AlignCenterOutlined, CheckOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
+import {AlignCenterOutlined, CheckOutlined, InfoCircleOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
 
 import "./css/ProductCard.css";
 
@@ -92,6 +92,23 @@ function isUsefulSpec(spec: ShortSpec): boolean {
     return !lower.includes("нет точной информации") && lower !== "unspecified";
 }
 
+function isAntutuSpec(spec: ShortSpec): boolean {
+    const blob = `${spec.title} ${spec.text ?? ""}`.toLowerCase();
+    return blob.includes("antutu") || blob.includes("an-tu-tu");
+}
+
+function pickVisibleSpecs(specs: ShortSpec[]): ShortSpec[] {
+    const useful = specs.filter(isUsefulSpec);
+    const picked = useful.slice(0, 10);
+    const antutu = useful.find(isAntutuSpec);
+
+    if (!antutu || picked.some(isAntutuSpec)) {
+        return picked;
+    }
+
+    return [...picked.slice(0, 9), antutu];
+}
+
 function ProductCard({title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
     const candidates = useMemo(() => buildImageCandidates(preview, pics), [preview, pics]);
     const [failedUrls, setFailedUrls] = useState<string[]>([]);
@@ -122,10 +139,12 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
     const currentUrl = images[activeIndex] ?? null;
     const hasGallery = images.length > 1;
     const visibleSpecs = useMemo(
-        () => shortSpecs.filter(isUsefulSpec).slice(0, 8),
+        () => pickVisibleSpecs(shortSpecs),
         [shortSpecs],
     );
     const [specsLeft, setSpecsLeft] = useState(false);
+    const [specsOpen, setSpecsOpen] = useState(false);
+    const specsCloseTimer = useRef<number | null>(null);
 
     const handleImageError = () => {
         if (!currentUrl) {
@@ -174,12 +193,41 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
         });
     };
 
-    const handleCardMouseEnter = (e: MouseEvent<HTMLElement>) => {
+    const openSpecs = (e: MouseEvent<HTMLElement>) => {
         if (visibleSpecs.length === 0 || !canHoverGallery()) return;
 
-        const rect = e.currentTarget.getBoundingClientRect();
-        setSpecsLeft(rect.right + 220 > window.innerWidth);
+        if (specsCloseTimer.current) {
+            window.clearTimeout(specsCloseTimer.current);
+            specsCloseTimer.current = null;
+        }
+
+        const card = e.currentTarget.closest(".product-card");
+        if (card) {
+            const rect = card.getBoundingClientRect();
+            setSpecsLeft(rect.right + 220 > window.innerWidth);
+        }
+
+        setSpecsOpen(true);
     };
+
+    const scheduleCloseSpecs = () => {
+        if (specsCloseTimer.current) {
+            window.clearTimeout(specsCloseTimer.current);
+        }
+
+        specsCloseTimer.current = window.setTimeout(() => {
+            setSpecsOpen(false);
+            specsCloseTimer.current = null;
+        }, 180);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (specsCloseTimer.current) {
+                window.clearTimeout(specsCloseTimer.current);
+            }
+        };
+    }, []);
 
     const renderImage = () => {
         if (showPlaceholder || !currentUrl) {
@@ -230,8 +278,7 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
 
     return (
         <article
-            className={`product-card${specsLeft ? " product-card--specs-left" : ""}`}
-            onMouseEnter={handleCardMouseEnter}
+            className={`product-card${specsLeft ? " product-card--specs-left" : ""}${specsOpen ? " product-card--specs-open" : ""}`}
         >
             <div className="product-card__actions">
                 <button
@@ -257,6 +304,18 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
                 >
                     <AlignCenterOutlined />
                 </button>
+
+                {visibleSpecs.length > 0 && (
+                    <button
+                        type="button"
+                        className={`product-card__action-btn product-card__action-btn--info${specsOpen ? " product-card__action-btn--active" : ""}`}
+                        aria-label="Краткие характеристики"
+                        onMouseEnter={openSpecs}
+                        onMouseLeave={scheduleCloseSpecs}
+                    >
+                        <InfoCircleOutlined />
+                    </button>
+                )}
             </div>
 
             <div
@@ -269,7 +328,12 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
             </div>
 
             {visibleSpecs.length > 0 && (
-                <ul className="product-card__specs" aria-label="Краткие характеристики">
+                <ul
+                    className="product-card__specs"
+                    aria-label="Краткие характеристики"
+                    onMouseEnter={openSpecs}
+                    onMouseLeave={scheduleCloseSpecs}
+                >
                     {visibleSpecs.map((spec) => (
                         <li key={spec.title} className="product-card__spec">
                             {spec.icon ? (
