@@ -46,6 +46,14 @@ function canHoverGallery(): boolean {
     return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
+function prefersHoverSpecs(): boolean {
+    if (typeof window === "undefined") return false;
+    return (
+        window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+        !window.matchMedia("(any-pointer: coarse)").matches
+    );
+}
+
 export interface ShortSpec {
     title: string;
     icon?: string | null;
@@ -61,29 +69,6 @@ interface ProductCardProps {
     priority?: boolean;
 }
 
-const MONTH_PATTERN =
-    "январ[ьяе]|феврал[ьяе]|марта?|апрел[ьяе]|ма[йяе]|июн[ьяе]|июл[ьяе]|август[ае]?|сентябр[ьяе]|октябр[ьяе]|ноябр[ьяе]|декабр[ьяе]";
-
-function formatSpecText(text?: string | null): string {
-    const value = text?.trim() ?? "";
-    if (!value || value.includes(":")) {
-        return value;
-    }
-
-    const monthMatch = value.match(new RegExp(`^(.+?)\\s+(${MONTH_PATTERN})(\\s+.*)?$`, "i"));
-    if (monthMatch) {
-        const rest = monthMatch[3] ?? "";
-        return `${monthMatch[1]}: ${monthMatch[2]}${rest}`;
-    }
-
-    const match = value.match(/^(.+?)\s+(\d.*)$/);
-    if (!match) {
-        return value;
-    }
-
-    return `${match[1]}: ${match[2]}`;
-}
-
 function isUsefulSpec(spec: ShortSpec): boolean {
     const text = spec.text?.trim() ?? "";
     if (!text) return false;
@@ -92,21 +77,8 @@ function isUsefulSpec(spec: ShortSpec): boolean {
     return !lower.includes("нет точной информации") && lower !== "unspecified";
 }
 
-function isAntutuSpec(spec: ShortSpec): boolean {
-    const blob = `${spec.title} ${spec.text ?? ""}`.toLowerCase();
-    return blob.includes("antutu") || blob.includes("an-tu-tu");
-}
-
 function pickVisibleSpecs(specs: ShortSpec[]): ShortSpec[] {
-    const useful = specs.filter(isUsefulSpec);
-    const picked = useful.slice(0, 10);
-    const antutu = useful.find(isAntutuSpec);
-
-    if (!antutu || picked.some(isAntutuSpec)) {
-        return picked;
-    }
-
-    return [...picked.slice(0, 9), antutu];
+    return specs.filter(isUsefulSpec).slice(0, 10);
 }
 
 function ProductCard({title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
@@ -145,6 +117,8 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
     const [specsLeft, setSpecsLeft] = useState(false);
     const [specsOpen, setSpecsOpen] = useState(false);
     const specsCloseTimer = useRef<number | null>(null);
+    const infoBtnRef = useRef<HTMLButtonElement>(null);
+    const specsListRef = useRef<HTMLUListElement>(null);
 
     const handleImageError = () => {
         if (!currentUrl) {
@@ -193,8 +167,18 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
         });
     };
 
+    const closeSpecs = () => {
+        if (specsCloseTimer.current) {
+            window.clearTimeout(specsCloseTimer.current);
+            specsCloseTimer.current = null;
+        }
+
+        setSpecsOpen(false);
+        infoBtnRef.current?.blur();
+    };
+
     const openSpecs = (e: MouseEvent<HTMLElement>) => {
-        if (visibleSpecs.length === 0 || !canHoverGallery()) return;
+        if (visibleSpecs.length === 0) return;
 
         if (specsCloseTimer.current) {
             window.clearTimeout(specsCloseTimer.current);
@@ -210,7 +194,25 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
         setSpecsOpen(true);
     };
 
+    const handleInfoMouseEnter = (e: MouseEvent<HTMLElement>) => {
+        if (!prefersHoverSpecs()) return;
+        openSpecs(e);
+    };
+
+    const toggleSpecs = (e: MouseEvent<HTMLElement>) => {
+        e.stopPropagation();
+        if (prefersHoverSpecs()) return;
+
+        if (specsOpen) {
+            closeSpecs();
+            return;
+        }
+
+        openSpecs(e);
+    };
+
     const scheduleCloseSpecs = () => {
+        if (!prefersHoverSpecs()) return;
         if (specsCloseTimer.current) {
             window.clearTimeout(specsCloseTimer.current);
         }
@@ -220,6 +222,23 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
             specsCloseTimer.current = null;
         }, 180);
     };
+
+    useEffect(() => {
+        if (!specsOpen) return;
+
+        const onPointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (infoBtnRef.current?.contains(target) || specsListRef.current?.contains(target)) {
+                return;
+            }
+
+            closeSpecs();
+        };
+
+        document.addEventListener("pointerdown", onPointerDown);
+        return () => document.removeEventListener("pointerdown", onPointerDown);
+    }, [specsOpen]);
 
     useEffect(() => {
         return () => {
@@ -307,11 +326,13 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
 
                 {visibleSpecs.length > 0 && (
                     <button
+                        ref={infoBtnRef}
                         type="button"
                         className={`product-card__action-btn product-card__action-btn--info${specsOpen ? " product-card__action-btn--active" : ""}`}
                         aria-label="Краткие характеристики"
-                        onMouseEnter={openSpecs}
+                        onMouseEnter={handleInfoMouseEnter}
                         onMouseLeave={scheduleCloseSpecs}
+                        onClick={toggleSpecs}
                     >
                         <InfoCircleOutlined />
                     </button>
@@ -329,9 +350,10 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
 
             {visibleSpecs.length > 0 && (
                 <ul
+                    ref={specsListRef}
                     className="product-card__specs"
                     aria-label="Краткие характеристики"
-                    onMouseEnter={openSpecs}
+                    onMouseEnter={handleInfoMouseEnter}
                     onMouseLeave={scheduleCloseSpecs}
                 >
                     {visibleSpecs.map((spec) => (
@@ -346,7 +368,7 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
                                     />
                                 </span>
                             ) : null}
-                            <span>{formatSpecText(spec.text)}</span>
+                            <span>{spec.text}</span>
                         </li>
                     ))}
                 </ul>
