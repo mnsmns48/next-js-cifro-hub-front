@@ -9,6 +9,7 @@ import "./css/ProductGrid.css";
 
 interface Product {
     id: number;
+    origin: number;
     title: string;
     output_price: number;
     preview?: string;
@@ -16,11 +17,12 @@ interface Product {
     short_specs?: ShortSpec[];
 }
 
+interface InfiniteProductRenderingProps {
+    menuLevels?: string;
+}
 
-export default function InfiniteProductRendering() {
+export default function InfiniteProductRendering({menuLevels = "0"}: InfiniteProductRenderingProps) {
     const [products, setProducts] = useState<Product[]>([]);
-    const [cursor, setCursor] = useState<number | null>(null);
-    const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -28,6 +30,8 @@ export default function InfiniteProductRendering() {
     const loadingRef = useRef(false);
     const hasMoreRef = useRef(true);
     const cursorRef = useRef<number | null>(null);
+    const menuLevelsRef = useRef(menuLevels);
+    menuLevelsRef.current = menuLevels;
 
     async function loadProducts(initial = false) {
         if (loadingRef.current) return;
@@ -39,7 +43,7 @@ export default function InfiniteProductRendering() {
         try {
             const params = new URLSearchParams({
                 limit: "24",
-                menu_levels: "0",
+                menu_levels: menuLevelsRef.current,
             });
 
             if (!initial && cursorRef.current) {
@@ -56,19 +60,18 @@ export default function InfiniteProductRendering() {
             }
 
             const data = await res.json();
+            const nextProducts: Product[] = Array.isArray(data.products) ? data.products : [];
 
             setProducts((prev) => {
                 const base = initial ? [] : prev;
-                const merged = [...base, ...data.products];
+                const merged = [...base, ...nextProducts];
                 return merged.filter(
-                    (item, index, arr) => arr.findIndex((x) => x.id === item.id) === index
+                    (item, index, arr) => arr.findIndex((x) => x.origin === item.origin) === index
                 );
             });
 
             cursorRef.current = data.next_cursor;
             hasMoreRef.current = Boolean(data.has_more);
-            setCursor(data.next_cursor);
-            setHasMore(Boolean(data.has_more));
             setError(false);
         } finally {
             loadingRef.current = false;
@@ -77,12 +80,18 @@ export default function InfiniteProductRendering() {
     }
 
     useEffect(() => {
+        loadingRef.current = false;
+        hasMoreRef.current = true;
+        cursorRef.current = null;
+        setProducts([]);
+        setError(false);
+
         const id = setTimeout(() => {
             void loadProducts(true);
         }, 0);
 
         return () => clearTimeout(id);
-    }, []);
+    }, [menuLevels]);
 
     useEffect(() => {
         if (!error) return;
@@ -123,15 +132,17 @@ export default function InfiniteProductRendering() {
                 <ServerError/>
             ) : (
                 <div className="product-grid">
-                        {products.map((p, index) => (
-                            <ProductCard key={p.id}
-                                         title={p.title}
-                                         price={p.output_price}
-                                         preview={p.preview}
-                                         pics={p.pics}
-                                         shortSpecs={p.short_specs}
-                                         priority={index < 8}/>
-                        ))}
+                    {products.map((p, index) => (
+                        <ProductCard
+                            key={p.origin}
+                            title={p.title}
+                            price={p.output_price}
+                            preview={p.preview}
+                            pics={p.pics}
+                            shortSpecs={p.short_specs}
+                            priority={index < 8}
+                        />
+                    ))}
 
                     {loading &&
                         Array.from({length: skeletonCount}).map((_, i) => (

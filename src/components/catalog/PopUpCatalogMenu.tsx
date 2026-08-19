@@ -1,6 +1,7 @@
 "use client";
 
 import {Dispatch, SetStateAction, useEffect, useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
 import {Spin} from "antd";
 
 import "../css/PopUpCatalogMenu.css";
@@ -20,6 +21,7 @@ interface PopUpCatalogMenuProps {
 }
 
 export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
+    const router = useRouter();
     const [levels, setLevels] = useState<HubLevel[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
@@ -70,7 +72,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
 
     const navigateToMenu = (id: number) => {
         setOpen(false);
-        window.location.href = `/search?menu=${id}`;
+        router.push(`/catalog?menu=${id}`);
     };
 
     if (!open) return null;

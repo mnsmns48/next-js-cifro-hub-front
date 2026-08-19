@@ -16,6 +16,8 @@
 
 .card-item {
     min-width: 0;
+    text-decoration: none;
+    color: inherit;
 }
 
 .card-catalog {

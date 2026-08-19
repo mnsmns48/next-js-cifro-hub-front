@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import Link from "next/link";
 import {Card, Spin} from "antd";
 
 import "../css/CardsCatalogMenu.css";
@@ -62,14 +63,14 @@ export default function CardsCatalogMenu() {
     return (
         <div className="cards-container">
             {depth0.map((d0) => (
-                <div key={d0.id} className="card-item">
+                <Link key={d0.id} href={`/catalog?menu=${d0.id}`} className="card-item">
                     <Card hoverable className="card-catalog">
                         <div className="card-icon-wrap">
                             <CategoryIcon src={d0.icon} alt={d0.label} className="card-image"/>
                         </div>
                         <div className="card-title">{d0.label}</div>
                     </Card>
-                </div>
+                </Link>
             ))}
         </div>
     );
