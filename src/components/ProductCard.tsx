@@ -2,6 +2,7 @@
 
 import {memo, useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {AlignCenterOutlined, CheckOutlined, InfoCircleOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
 
 import "./css/ProductCard.css";
@@ -61,6 +62,7 @@ export interface ShortSpec {
 }
 
 interface ProductCardProps {
+    origin?: number;
     title: string;
     price: string | number;
     preview?: string;
@@ -81,7 +83,7 @@ function pickVisibleSpecs(specs: ShortSpec[]): ShortSpec[] {
     return specs.filter(isUsefulSpec).slice(0, 10);
 }
 
-function ProductCard({title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
+function ProductCard({origin, title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
     const candidates = useMemo(() => buildImageCandidates(preview, pics), [preview, pics]);
     const [failedUrls, setFailedUrls] = useState<string[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -339,14 +341,27 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
                 )}
             </div>
 
-            <div
-                className="product-card__image-wrap"
-                onMouseEnter={handleMouseEnter}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-            >
-                {renderImage()}
-            </div>
+            {origin ? (
+                <Link href={`/product/${origin}`} className="product-card__image-link">
+                    <div
+                        className="product-card__image-wrap"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                    >
+                        {renderImage()}
+                    </div>
+                </Link>
+            ) : (
+                <div
+                    className="product-card__image-wrap"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    {renderImage()}
+                </div>
+            )}
 
             {visibleSpecs.length > 0 && (
                 <ul
@@ -374,7 +389,11 @@ function ProductCard({title, price, preview, pics, shortSpecs = [], priority = f
                 </ul>
             )}
 
-            <h3 className="product-card__title">{title}</h3>
+            {origin ? (
+                <Link href={`/product/${origin}`} className="product-card__title">{title}</Link>
+            ) : (
+                <h3 className="product-card__title">{title}</h3>
+            )}
 
             <p className="product-card__price">{formatPrice(price)} ₽</p>
 

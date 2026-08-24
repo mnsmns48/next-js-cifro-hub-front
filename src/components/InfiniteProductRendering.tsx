@@ -31,7 +31,6 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
     const hasMoreRef = useRef(true);
     const cursorRef = useRef<number | null>(null);
     const menuLevelsRef = useRef(menuLevels);
-    menuLevelsRef.current = menuLevels;
 
     async function loadProducts(initial = false) {
         if (loadingRef.current) return;
@@ -80,13 +79,14 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
     }
 
     useEffect(() => {
+        menuLevelsRef.current = menuLevels;
         loadingRef.current = false;
         hasMoreRef.current = true;
         cursorRef.current = null;
-        setProducts([]);
-        setError(false);
 
         const id = setTimeout(() => {
+            setProducts([]);
+            setError(false);
             void loadProducts(true);
         }, 0);
 
@@ -104,7 +104,8 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
     }, [error]);
 
     useEffect(() => {
-        if (error || products.length === 0) return;
+        if (error || loading || products.length === 0) return;
+        if (!hasMoreRef.current) return;
         if (!sentinelRef.current) return;
 
         const observer = new IntersectionObserver(
@@ -114,14 +115,14 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
                 void loadProducts();
             },
             {
-                rootMargin: "200px",
+                rootMargin: "300px",
             }
         );
 
         observer.observe(sentinelRef.current);
 
         return () => observer.disconnect();
-    }, [error, products.length === 0]);
+    }, [error, loading, products.length]);
 
     const isInitialLoad = loading && products.length === 0;
     const skeletonCount = isInitialLoad ? 12 : 6;
@@ -135,6 +136,7 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
                     {products.map((p, index) => (
                         <ProductCard
                             key={p.origin}
+                            origin={p.origin}
                             title={p.title}
                             price={p.output_price}
                             preview={p.preview}
