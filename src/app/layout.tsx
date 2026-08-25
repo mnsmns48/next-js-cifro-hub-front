@@ -5,6 +5,7 @@ import AppHeader from "@/components/header/AppHeader";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import MobileTabBar from "@/components/header/MobileTabBar";
 import PageContainer from "@/components/PageContainer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 
 export default function RootLayout({children}: { children: ReactNode }) {
@@ -20,6 +21,7 @@ export default function RootLayout({children}: { children: ReactNode }) {
             </main>
         </div>
         <ConditionalFooter/>
+        <ScrollToTop/>
         <MobileTabBar/>
         </body>
         </html>

@@ -119,6 +119,7 @@ export default function ProductDetail({origin}: {origin: string}) {
     const [favorite, setFavorite] = useState(false);
     const [compare, setCompare] = useState(false);
     const [galleryOpen, setGalleryOpen] = useState(false);
+    const [prosSheetOpen, setProsSheetOpen] = useState(false);
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
     const suppressImageClick = useRef(false);
@@ -239,6 +240,25 @@ export default function ProductDetail({origin}: {origin: string}) {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [galleryOpen, images.length]);
+
+    useEffect(() => {
+        if (!prosSheetOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setProsSheetOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [prosSheetOpen]);
 
     if (loading) {
         return (
@@ -397,28 +417,86 @@ export default function ProductDetail({origin}: {origin: string}) {
                     )}
 
                     {hasPros && (
-                        <div className="product-detail__pros-cons">
-                            {pros.length > 0 && (
-                                <div className="product-detail__pros-cons-block product-detail__pros-cons-block--pros">
-                                    <h3>Преимущества</h3>
-                                    <ul className="product-detail__pros">
-                                        {pros.map((item) => (
-                                            <li key={item}>{item}</li>
-                                        ))}
-                                    </ul>
+                        <>
+                            <div className="product-detail__pros-cons">
+                                {pros.length > 0 && (
+                                    <div className="product-detail__pros-cons-block product-detail__pros-cons-block--pros">
+                                        <h3>Преимущества</h3>
+                                        <ul className="product-detail__pros">
+                                            {pros.map((item) => (
+                                                <li key={item}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {cons.length > 0 && (
+                                    <div className="product-detail__pros-cons-block product-detail__pros-cons-block--cons">
+                                        <h3>Недостатки</h3>
+                                        <ul className="product-detail__cons">
+                                            {cons.map((item) => (
+                                                <li key={item}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                type="button"
+                                className="product-detail__pros-trigger"
+                                onClick={() => setProsSheetOpen(true)}
+                            >
+                                <span>Преимущества и недостатки</span>
+                                <span className="product-detail__pros-trigger-arrow" aria-hidden>›</span>
+                            </button>
+
+                            {prosSheetOpen && (
+                                <div
+                                    className="product-detail__pros-sheet-backdrop"
+                                    onClick={() => setProsSheetOpen(false)}
+                                >
+                                    <section
+                                        className="product-detail__pros-sheet"
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-label="Плюсы и минусы товара"
+                                        onClick={(event) => event.stopPropagation()}
+                                    >
+                                        <header className="product-detail__pros-sheet-header">
+                                            <button
+                                                type="button"
+                                                aria-label="Закрыть"
+                                                onClick={() => setProsSheetOpen(false)}
+                                            >
+                                                <CloseOutlined/>
+                                            </button>
+                                        </header>
+                                        <div className="product-detail__pros-sheet-content">
+                                            {pros.length > 0 && (
+                                                <div>
+                                                    <h3>Преимущества</h3>
+                                                    <ul className="product-detail__pros">
+                                                        {pros.map((item) => (
+                                                            <li key={item}>{item}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {cons.length > 0 && (
+                                                <div>
+                                                    <h3>Недостатки</h3>
+                                                    <ul className="product-detail__cons">
+                                                        {cons.map((item) => (
+                                                            <li key={item}>{item}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </section>
                                 </div>
                             )}
-                            {cons.length > 0 && (
-                                <div className="product-detail__pros-cons-block product-detail__pros-cons-block--cons">
-                                    <h3>Недостатки</h3>
-                                    <ul className="product-detail__cons">
-                                        {cons.map((item) => (
-                                            <li key={item}>{item}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
+                        </>
                     )}
 
                     <aside className="product-detail__buy">
