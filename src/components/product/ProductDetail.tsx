@@ -250,8 +250,18 @@ export default function ProductDetail({origin}: {origin: string}) {
     useEffect(() => {
         if (!prosSheetOpen) return;
 
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
+        const scrollY = window.scrollY;
+        const previousPosition = document.body.style.position;
+        const previousTop = document.body.style.top;
+        const previousLeft = document.body.style.left;
+        const previousRight = document.body.style.right;
+        const previousWidth = document.body.style.width;
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
@@ -261,7 +271,12 @@ export default function ProductDetail({origin}: {origin: string}) {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => {
-            document.body.style.overflow = previousOverflow;
+            document.body.style.position = previousPosition;
+            document.body.style.top = previousTop;
+            document.body.style.left = previousLeft;
+            document.body.style.right = previousRight;
+            document.body.style.width = previousWidth;
+            window.scrollTo(0, scrollY);
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [prosSheetOpen]);
@@ -613,22 +628,38 @@ export default function ProductDetail({origin}: {origin: string}) {
             {features.length > 0 && (
                 <section id="product-specs" className="product-detail__section">
                     {features.map((feature) => (
-                        <details key={feature.title} className="product-detail__feature">
-                            <summary>
-                                <span>{feature.title}</span>
-                                <RightOutlined className="product-detail__feature-arrow"/>
-                            </summary>
-                            <table>
-                                <tbody>
-                                    {feature.rows.map((row) => (
-                                        <tr key={`${feature.title}-${row.param}`}>
-                                            <th>{row.param}</th>
-                                            <td>{formatSpecValue(row.param, row.value)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </details>
+                        <div key={feature.title} className="product-detail__feature-wrap">
+                            <div className="product-detail__feature product-detail__feature--desktop">
+                                <h3 className="product-detail__feature-title">{feature.title}</h3>
+                                <table>
+                                    <tbody>
+                                        {feature.rows.map((row) => (
+                                            <tr key={`${feature.title}-${row.param}`}>
+                                                <th>{row.param}</th>
+                                                <td>{formatSpecValue(row.param, row.value)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <details className="product-detail__feature product-detail__feature--mobile">
+                                <summary>
+                                    <span>{feature.title}</span>
+                                    <RightOutlined className="product-detail__feature-arrow"/>
+                                </summary>
+                                <table>
+                                    <tbody>
+                                        {feature.rows.map((row) => (
+                                            <tr key={`${feature.title}-mobile-${row.param}`}>
+                                                <th>{row.param}</th>
+                                                <td>{formatSpecValue(row.param, row.value)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </details>
+                        </div>
                     ))}
                 </section>
             )}

@@ -52,18 +52,7 @@
 
 .app-header-wrapper--catalog-open {
     width: 100%;
-    padding-bottom: 0;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: saturate(180%) blur(28px);
-    -webkit-backdrop-filter: saturate(180%) blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 22px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.app-header-wrapper--catalog-open::after {
-    display: none;
+    background: transparent;
 }
 
 .app-header-wrapper--catalog-open::before {
@@ -71,31 +60,19 @@
 }
 
 .app-header-wrapper--catalog-open .app-header {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: none;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 .app-header-wrapper--catalog-open .popup-catalog-menu {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    border-radius: 0;
-    box-shadow: none;
+    top: calc(10px + 90px - 1px);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 
 .app-header-wrapper--catalog-open .popup-hover-zone,
 .app-header-wrapper--catalog-open .catalog-hover-zone {
-    display: none;
+    top: calc(10px + 90px - 20px);
 }
 
 .ant-menu {
