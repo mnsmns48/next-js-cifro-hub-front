@@ -67,6 +67,12 @@ function isRemoteUrl(url: string): boolean {
     return url.startsWith("http://") || url.startsWith("https://");
 }
 
+function formatSpecValue(param: string, value: string): string {
+    return param.trim().toLocaleLowerCase("ru-RU") === "производитель"
+        ? value.toLocaleUpperCase("ru-RU")
+        : value;
+}
+
 function attrLabel(attr: ProductAttr): string {
     return attr.key?.alias || attr.key?.key || attr.alias || "";
 }
@@ -392,12 +398,44 @@ export default function ProductDetail({origin}: {origin: string}) {
                 </div>
 
                 <div className="product-detail__specs-col">
+                    <aside className="product-detail__buy">
+                        <p className="product-detail__price">{formatPrice(product.output_price)} ₽</p>
+                        <div className="product-detail__buy-row">
+                            <button
+                                type="button"
+                                className={`product-detail__cart${inCart ? " product-detail__cart--in" : ""}`}
+                                onClick={() => setInCart((prev) => !prev)}
+                            >
+                                {inCart ? <CheckOutlined/> : <ShoppingCartOutlined/>}
+                                {inCart ? "В корзине" : "В корзину"}
+                            </button>
+                            <div className="product-detail__buy-actions">
+                                <button
+                                    type="button"
+                                    className={`product-detail__icon-btn${favorite ? " product-detail__icon-btn--active" : ""}`}
+                                    aria-label={favorite ? "Убрать из избранного" : "В избранное"}
+                                    onClick={() => setFavorite((prev) => !prev)}
+                                >
+                                    {favorite ? <StarFilled/> : <StarOutlined/>}
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`product-detail__icon-btn${compare ? " product-detail__icon-btn--active" : ""}`}
+                                    aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
+                                    onClick={() => setCompare((prev) => !prev)}
+                                >
+                                    <AlignCenterOutlined/>
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+
                     {briefSpecs.length > 0 ? (
                         <dl className="product-detail__brief">
                             {briefSpecs.map((row) => (
                                 <div key={row.param} className="product-detail__brief-row">
                                     <dt>{row.param}</dt>
-                                    <dd>{row.value}</dd>
+                                    <dd>{formatSpecValue(row.param, row.value)}</dd>
                                 </div>
                             ))}
                         </dl>
@@ -447,7 +485,7 @@ export default function ProductDetail({origin}: {origin: string}) {
                                 onClick={() => setProsSheetOpen(true)}
                             >
                                 <span>Преимущества и недостатки</span>
-                                <span className="product-detail__pros-trigger-arrow" aria-hidden>›</span>
+                                <RightOutlined className="product-detail__pros-trigger-arrow"/>
                             </button>
 
                             {prosSheetOpen && (
@@ -499,37 +537,6 @@ export default function ProductDetail({origin}: {origin: string}) {
                         </>
                     )}
 
-                    <aside className="product-detail__buy">
-                        <p className="product-detail__price">{formatPrice(product.output_price)} ₽</p>
-                        <div className="product-detail__buy-row">
-                            <button
-                                type="button"
-                                className={`product-detail__cart${inCart ? " product-detail__cart--in" : ""}`}
-                                onClick={() => setInCart((prev) => !prev)}
-                            >
-                                {inCart ? <CheckOutlined/> : <ShoppingCartOutlined/>}
-                                {inCart ? "В корзине" : "В корзину"}
-                            </button>
-                            <div className="product-detail__buy-actions">
-                                <button
-                                    type="button"
-                                    className={`product-detail__icon-btn${favorite ? " product-detail__icon-btn--active" : ""}`}
-                                    aria-label={favorite ? "Убрать из избранного" : "В избранное"}
-                                    onClick={() => setFavorite((prev) => !prev)}
-                                >
-                                    {favorite ? <StarFilled/> : <StarOutlined/>}
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`product-detail__icon-btn${compare ? " product-detail__icon-btn--active" : ""}`}
-                                    aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
-                                    onClick={() => setCompare((prev) => !prev)}
-                                >
-                                    <AlignCenterOutlined/>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
                 </div>
             </div>
 
@@ -606,19 +613,22 @@ export default function ProductDetail({origin}: {origin: string}) {
             {features.length > 0 && (
                 <section id="product-specs" className="product-detail__section">
                     {features.map((feature) => (
-                        <div key={feature.title} className="product-detail__feature">
-                            <h3>{feature.title}</h3>
+                        <details key={feature.title} className="product-detail__feature">
+                            <summary>
+                                <span>{feature.title}</span>
+                                <RightOutlined className="product-detail__feature-arrow"/>
+                            </summary>
                             <table>
                                 <tbody>
                                     {feature.rows.map((row) => (
                                         <tr key={`${feature.title}-${row.param}`}>
                                             <th>{row.param}</th>
-                                            <td>{row.value}</td>
+                                            <td>{formatSpecValue(row.param, row.value)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
+                        </details>
                     ))}
                 </section>
             )}
