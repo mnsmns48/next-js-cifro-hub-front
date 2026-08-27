@@ -7,6 +7,7 @@ import {
     AlignCenterOutlined,
     CheckOutlined,
     CloseOutlined,
+    InfoCircleOutlined,
     LeftOutlined,
     RightOutlined,
     ShoppingCartOutlined,
@@ -42,6 +43,15 @@ interface ProductAttr {
     };
 }
 
+interface ProductShortSpec {
+    title?: string;
+    alias?: string;
+    icon?: string | null;
+    text?: string | null;
+    value?: string | null;
+    values?: Record<string, unknown> | null;
+}
+
 interface ProductDetailData {
     id?: number;
     origin: number;
@@ -55,6 +65,7 @@ interface ProductDetailData {
     type_obj?: { type?: string } | null;
     model?: string | null;
     attrs?: ProductAttr[];
+    short_specs?: ProductShortSpec[];
     full_specs?: { features?: SpecFeature[] } | null;
     pros_cons?: Record<string, unknown> | null;
 }
@@ -65,6 +76,11 @@ function formatPrice(price: string | number): string {
 
 function isRemoteUrl(url: string): boolean {
     return url.startsWith("http://") || url.startsWith("https://");
+}
+
+function normalizeUrl(url: string): string {
+    const trimmed = url.trim();
+    return trimmed.startsWith("//") ? `https:${trimmed}` : trimmed;
 }
 
 function formatSpecValue(param: string, value: string): string {
@@ -115,6 +131,18 @@ function listFromUnknown(value: unknown): string[] {
     return value.filter((item): item is string => typeof item === "string" && item.trim() !== "");
 }
 
+function shortSpecValue(spec: ProductShortSpec): string {
+    if (isUsefulValue(spec.text)) return spec.text.trim();
+    if (isUsefulValue(spec.value)) return spec.value.trim();
+    if (spec.values && typeof spec.values === "object") {
+        const values = Object.values(spec.values).filter(
+            (entry): entry is string => typeof entry === "string" && isUsefulValue(entry),
+        );
+        if (values.length > 0) return values.join(", ");
+    }
+    return "";
+}
+
 export default function ProductDetail({origin}: {origin: string}) {
     const [product, setProduct] = useState<ProductDetailData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -126,6 +154,7 @@ export default function ProductDetail({origin}: {origin: string}) {
     const [compare, setCompare] = useState(false);
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [prosSheetOpen, setProsSheetOpen] = useState(false);
+    const [briefSpecsSheetOpen, setBriefSpecsSheetOpen] = useState(false);
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
     const suppressImageClick = useRef(false);
@@ -187,6 +216,16 @@ export default function ProductDetail({origin}: {origin: string}) {
     );
     const hasPros = pros.length > 0 || cons.length > 0;
     const briefSpecs = product ? buildBriefSpecs(product, hasPros ? 7 : 12) : [];
+    const briefSheetSpecs = useMemo(() => {
+        return (product?.short_specs ?? [])
+            .map((spec) => {
+                const label = (spec.alias || spec.title || "").trim();
+                const value = shortSpecValue(spec);
+                const icon = spec.icon?.trim() ? normalizeUrl(spec.icon) : null;
+                return {label, value, icon};
+            })
+            .filter((spec) => spec.label && spec.value);
+    }, [product?.short_specs]);
 
     const handleGalleryTouchStart = (event: TouchEvent<HTMLElement>) => {
         const touch = event.touches[0];
@@ -280,6 +319,40 @@ export default function ProductDetail({origin}: {origin: string}) {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [prosSheetOpen]);
+
+    useEffect(() => {
+        if (!briefSpecsSheetOpen) return;
+
+        const scrollY = window.scrollY;
+        const previousPosition = document.body.style.position;
+        const previousTop = document.body.style.top;
+        const previousLeft = document.body.style.left;
+        const previousRight = document.body.style.right;
+        const previousWidth = document.body.style.width;
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setBriefSpecsSheetOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.body.style.position = previousPosition;
+            document.body.style.top = previousTop;
+            document.body.style.left = previousLeft;
+            document.body.style.right = previousRight;
+            document.body.style.width = previousWidth;
+            window.scrollTo(0, scrollY);
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [briefSpecsSheetOpen]);
 
     if (loading) {
         return (
@@ -441,6 +514,16 @@ export default function ProductDetail({origin}: {origin: string}) {
                                 >
                                     <AlignCenterOutlined/>
                                 </button>
+                                {briefSheetSpecs.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="product-detail__icon-btn product-detail__icon-btn--specs-mobile"
+                                        aria-label="Показать краткие характеристики"
+                                        onClick={() => setBriefSpecsSheetOpen(true)}
+                                    >
+                                        <InfoCircleOutlined/>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </aside>
@@ -554,6 +637,51 @@ export default function ProductDetail({origin}: {origin: string}) {
 
                 </div>
             </div>
+
+            {briefSpecsSheetOpen && (
+                <div
+                    className="product-detail__brief-sheet-backdrop"
+                    onClick={() => setBriefSpecsSheetOpen(false)}
+                >
+                    <section
+                        className="product-detail__brief-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Краткие характеристики товара"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <header className="product-detail__brief-sheet-header">
+                            <h3>Краткие характеристики</h3>
+                            <button
+                                type="button"
+                                aria-label="Закрыть"
+                                onClick={() => setBriefSpecsSheetOpen(false)}
+                            >
+                                <CloseOutlined/>
+                            </button>
+                        </header>
+
+                        <div className="product-detail__brief-sheet-content">
+                            <ul className="product-detail__brief-sheet-list">
+                                {briefSheetSpecs.map((row) => (
+                                    <li key={`brief-sheet-${row.label}`}>
+                                        <span className="product-detail__brief-sheet-list-icon" aria-hidden>
+                                            {row.icon ? (
+                                                <img src={row.icon} alt=""/>
+                                            ) : (
+                                                <InfoCircleOutlined/>
+                                            )}
+                                        </span>
+                                        <div className="product-detail__brief-sheet-list-text">
+                                            <strong>{row.value}</strong>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+            )}
 
             {galleryOpen && currentUrl && (
                 <div
