@@ -11,6 +11,7 @@ interface HubLevel {
     sort_order: number;
     label: string;
     icon: string | null;
+    slug?: string | null;
     parent_id: number;
     depth: number;
 }
@@ -18,6 +19,39 @@ interface HubLevel {
 interface PopUpCatalogMenuProps {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+function toCatalogHref(slug?: string | null): string {
+    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
+    if (!normalized) return "/catalog";
+
+    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
+    return `/catalog/${segments.join("/")}`;
+}
+
+function slugSegment(slug?: string | null): string | null {
+    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
+    if (!normalized) return null;
+    const parts = normalized.split("/").filter(Boolean);
+    return parts.at(-1) ?? null;
+}
+
+function buildLevelPath(level: HubLevel, levelsById: Map<number, HubLevel>): string | null {
+    const segments: string[] = [];
+    const visited = new Set<number>();
+    let current: HubLevel | undefined = level;
+
+    while (current && !visited.has(current.id)) {
+        visited.add(current.id);
+        const segment = slugSegment(current.slug);
+        if (segment) {
+            segments.unshift(segment);
+        }
+
+        current = levelsById.get(current.parent_id);
+    }
+
+    return segments.length > 0 ? segments.join("/") : null;
 }
 
 export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
@@ -54,6 +88,10 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
         () => levels.filter((l) => l.depth === 2).sort((a, b) => a.sort_order - b.sort_order),
         [levels],
     );
+    const levelsById = useMemo(
+        () => new Map(levels.map((level) => [level.id, level])),
+        [levels],
+    );
 
     useEffect(() => {
         if (depth0.length === 0) return;
@@ -70,9 +108,10 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
         return depth1.filter((item) => item.parent_id === activeCategoryId);
     }, [activeCategoryId, depth1]);
 
-    const navigateToMenu = (id: number) => {
+    const navigateToMenu = (level: HubLevel) => {
         setOpen(false);
-        router.push(`/catalog?menu=${id}`);
+        const fullPath = buildLevelPath(level, levelsById);
+        router.push(toCatalogHref(fullPath));
     };
 
     if (!open) return null;
@@ -98,7 +137,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                                     type="button"
                                     className={`mega-menu__category${activeCategoryId === category.id ? " mega-menu__category--active" : ""}`}
                                     onMouseEnter={() => setActiveCategoryId(category.id)}
-                                    onClick={() => navigateToMenu(category.id)}
+                                    onClick={() => navigateToMenu(category)}
                                 >
                                     {category.icon && (
                                         <img
@@ -125,7 +164,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                                                 <button
                                                     type="button"
                                                     className="mega-menu__group-title"
-                                                    onClick={() => navigateToMenu(group.id)}
+                                                    onClick={() => navigateToMenu(group)}
                                                 >
                                                     {group.label}
                                                 </button>
@@ -137,7 +176,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                                                                 <button
                                                                     type="button"
                                                                     className="mega-menu__link"
-                                                                    onClick={() => navigateToMenu(item.id)}
+                                                                    onClick={() => navigateToMenu(item)}
                                                                 >
                                                                     {item.label}
                                                                 </button>

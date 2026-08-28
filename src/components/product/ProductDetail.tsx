@@ -21,6 +21,7 @@ import "../css/ProductDetail.css";
 interface RouteItem {
     path_id: number;
     label: string;
+    slug?: string | null;
 }
 
 interface SpecRow {
@@ -129,6 +130,21 @@ function buildBriefSpecs(product: ProductDetailData, limit: number): SpecRow[] {
 function listFromUnknown(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
     return value.filter((item): item is string => typeof item === "string" && item.trim() !== "");
+}
+
+function toCatalogHref(slug?: string | null): string {
+    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
+    if (!normalized) return "/catalog";
+
+    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
+    return `/catalog/${segments.join("/")}`;
+}
+
+function slugSegment(slug?: string | null): string | null {
+    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
+    if (!normalized) return null;
+    const parts = normalized.split("/").filter(Boolean);
+    return parts.at(-1) ?? null;
 }
 
 function shortSpecValue(spec: ProductShortSpec): string {
@@ -381,14 +397,31 @@ export default function ProductDetail({origin}: {origin: string}) {
         <article className="product-detail">
             {product.route && product.route.length > 0 && (
                 <nav className="product-detail__nav" aria-label="Навигация">
-                    {product.route.map((item, index) => (
-                        <span key={`${item.path_id}-${item.label}`}>
-                            {index > 0 ? <span className="product-detail__nav-sep">›</span> : null}
-                            <Link href={index === 0 ? "/" : `/catalog?menu=${item.path_id}`}>
-                                {item.label}
-                            </Link>
-                        </span>
-                    ))}
+                    {(() => {
+                        const chain: string[] = [];
+
+                        return product.route.map((item, index) => {
+                            const segment = slugSegment(item.slug);
+                            if (segment) {
+                                chain.push(segment);
+                            }
+
+                            return (
+                                <span key={`${item.path_id}-${item.label}`}>
+                                    {index > 0 ? <span className="product-detail__nav-sep">›</span> : null}
+                                    {index === 0 ? (
+                                        <Link href="/">{item.label}</Link>
+                                    ) : segment ? (
+                                        <Link href={toCatalogHref(chain.join("/"))}>
+                                            {item.label}
+                                        </Link>
+                                    ) : (
+                                        <Link href="/catalog">{item.label}</Link>
+                                    )}
+                                </span>
+                            );
+                        });
+                    })()}
                 </nav>
             )}
 

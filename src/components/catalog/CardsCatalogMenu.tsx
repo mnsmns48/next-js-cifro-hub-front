@@ -8,11 +8,20 @@ import "../css/CardsCatalogMenu.css";
 
 const PLACEHOLDER = "/images/placeholder.svg";
 
+function toCatalogHref(slug?: string | null): string {
+    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
+    if (!normalized) return "/catalog";
+
+    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
+    return `/catalog/${segments.join("/")}`;
+}
+
 interface HubLevel {
     id: number;
     sort_order: number;
     label: string;
     icon: string | null;
+    slug?: string | null;
     parent_id: number;
     depth: number;
 }
@@ -63,7 +72,11 @@ export default function CardsCatalogMenu() {
     return (
         <div className="cards-container">
             {depth0.map((d0) => (
-                <Link key={d0.id} href={`/catalog?menu=${d0.id}`} className="card-item">
+                <Link
+                    key={d0.id}
+                    href={toCatalogHref(d0.slug)}
+                    className="card-item"
+                >
                     <Card hoverable className="card-catalog">
                         <div className="card-icon-wrap">
                             <CategoryIcon src={d0.icon} alt={d0.label} className="card-image"/>

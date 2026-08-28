@@ -799,6 +799,20 @@
     .product-detail__card {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
     }
+
+    .product-detail__buy {
+        gap: 12px;
+    }
+
+    .product-detail__buy-row {
+        min-width: 0;
+    }
+
+    .product-detail__cart {
+        flex: 1 1 150px;
+        min-width: 0;
+        padding: 0 12px;
+    }
 }
 
 @media (max-width: 768px) {
