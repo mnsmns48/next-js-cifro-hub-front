@@ -67,7 +67,7 @@ interface ProductCardProps {
     price: string | number;
     preview?: string;
     pics?: string[];
-    shortSpecs?: ShortSpec[];
+    shortSpecs?: ShortSpec[] | null;
     priority?: boolean;
 }
 
@@ -108,11 +108,12 @@ function isUsefulSpec(spec: ShortSpec): boolean {
     return !lower.includes("нет точной информации") && lower !== "unspecified";
 }
 
-function pickVisibleSpecs(specs: ShortSpec[]): ShortSpec[] {
+function pickVisibleSpecs(specs?: ShortSpec[] | null): ShortSpec[] {
+    if (!Array.isArray(specs)) return [];
     return specs.filter(isUsefulSpec).slice(0, 10);
 }
 
-function ProductCard({origin, title, price, preview, pics, shortSpecs = [], priority = false}: ProductCardProps) {
+function ProductCard({origin, title, price, preview, pics, shortSpecs, priority = false}: ProductCardProps) {
     const productHref = buildProductHref(title, origin);
     const candidates = useMemo(() => buildImageCandidates(preview, pics), [preview, pics]);
     const [failedUrls, setFailedUrls] = useState<string[]>([]);
