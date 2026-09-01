@@ -64,10 +64,15 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
         async function loadLevels() {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`);
+                if (!res.ok) {
+                    return;
+                }
                 const data = await res.json();
                 if (Array.isArray(data)) {
                     setLevels(data);
                 }
+            } catch {
+                // Keep previous levels if backend temporarily fails.
             } finally {
                 setLoading(false);
             }
@@ -93,20 +98,17 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
         [levels],
     );
 
-    useEffect(() => {
-        if (depth0.length === 0) return;
-        setActiveCategoryId((prev) => {
-            if (prev !== null && depth0.some((item) => item.id === prev)) {
-                return prev;
-            }
-            return depth0[0].id;
-        });
-    }, [depth0]);
+    const resolvedActiveCategoryId = useMemo(() => {
+        if (activeCategoryId !== null && depth0.some((item) => item.id === activeCategoryId)) {
+            return activeCategoryId;
+        }
+        return depth0[0]?.id ?? null;
+    }, [activeCategoryId, depth0]);
 
     const activeGroups = useMemo(() => {
-        if (activeCategoryId === null) return [];
-        return depth1.filter((item) => item.parent_id === activeCategoryId);
-    }, [activeCategoryId, depth1]);
+        if (resolvedActiveCategoryId === null) return [];
+        return depth1.filter((item) => item.parent_id === resolvedActiveCategoryId);
+    }, [resolvedActiveCategoryId, depth1]);
 
     const navigateToMenu = (level: HubLevel) => {
         setOpen(false);
@@ -135,7 +137,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                                 <button
                                     key={category.id}
                                     type="button"
-                                    className={`mega-menu__category${activeCategoryId === category.id ? " mega-menu__category--active" : ""}`}
+                                    className={`mega-menu__category${resolvedActiveCategoryId === category.id ? " mega-menu__category--active" : ""}`}
                                     onMouseEnter={() => setActiveCategoryId(category.id)}
                                     onClick={() => navigateToMenu(category)}
                                 >

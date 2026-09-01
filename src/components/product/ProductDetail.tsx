@@ -177,35 +177,38 @@ export default function ProductDetail({origin}: {origin: string}) {
 
     useEffect(() => {
         let cancelled = false;
-        setLoading(true);
-        setError(false);
-        setProduct(null);
-        setActiveIndex(0);
-        setUseNativeImg(false);
+        const requestId = window.setTimeout(() => {
+            setLoading(true);
+            setError(false);
+            setProduct(null);
+            setActiveIndex(0);
+            setUseNativeImg(false);
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/product?origin=${encodeURIComponent(origin)}`)
-            .then((res) => {
-                if (!res.ok) throw new Error("product");
-                return res.json();
-            })
-            .then((data) => {
-                if (!cancelled) {
-                    setProduct(data);
-                }
-            })
-            .catch(() => {
-                if (!cancelled) {
-                    setError(true);
-                }
-            })
-            .finally(() => {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            });
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/product?origin=${encodeURIComponent(origin)}`)
+                .then((res) => {
+                    if (!res.ok) throw new Error("product");
+                    return res.json();
+                })
+                .then((data) => {
+                    if (!cancelled) {
+                        setProduct(data);
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled) {
+                        setError(true);
+                    }
+                })
+                .finally(() => {
+                    if (!cancelled) {
+                        setLoading(false);
+                    }
+                });
+        }, 0);
 
         return () => {
             cancelled = true;
+            window.clearTimeout(requestId);
         };
     }, [origin]);
 

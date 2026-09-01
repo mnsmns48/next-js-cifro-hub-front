@@ -48,7 +48,7 @@ export default function CardsCatalogMenu() {
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
-            .then((res) => res.json())
+            .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
                 if (Array.isArray(data)) {
                     setLevels(data);

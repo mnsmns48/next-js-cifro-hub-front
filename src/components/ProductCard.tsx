@@ -127,21 +127,20 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
         () => candidates.filter((url) => !failedUrls.includes(url)),
         [candidates, failedUrls],
     );
+    const safeActiveIndex = Math.min(activeIndex, Math.max(0, images.length - 1));
 
     useEffect(() => {
-        setFailedUrls([]);
-        setActiveIndex(0);
-        setUseNativeImg(false);
+        const resetId = window.setTimeout(() => {
+            setFailedUrls([]);
+            setActiveIndex(0);
+            setUseNativeImg(false);
+        }, 0);
+
+        return () => window.clearTimeout(resetId);
     }, [candidates]);
 
-    useEffect(() => {
-        if (activeIndex >= images.length) {
-            setActiveIndex(Math.max(0, images.length - 1));
-        }
-    }, [activeIndex, images.length]);
-
     const showPlaceholder = images.length === 0;
-    const currentUrl = images[activeIndex] ?? null;
+    const currentUrl = images[safeActiveIndex] ?? null;
     const hasGallery = images.length > 1;
     const visibleSpecs = useMemo(
         () => pickVisibleSpecs(shortSpecs),
