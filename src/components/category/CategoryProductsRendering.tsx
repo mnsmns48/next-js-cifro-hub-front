@@ -204,15 +204,61 @@ function isPriceFilter(filter: ApiFilter): boolean {
     return key.includes("price") || label.includes("цена");
 }
 
+const FILTER_LIST_PREVIEW = 5;
+const CHIP_PREVIEW = 8;
+const BRAND_CHIP_PREVIEW = 6;
+
+function isColorFilter(filter: ApiFilter): boolean {
+    const key = filter.key.trim().toLowerCase();
+    const label = filter.label.trim().toLowerCase();
+    return key.includes("color") || key.includes("colour") || key.includes("цвет") || label.includes("цвет");
+}
+
+function isBooleanFilter(filter: ApiFilter, values: FilterValue[]): boolean {
+    const type = (filter.type ?? "").trim().toLowerCase();
+    if (type.includes("bool") || type.includes("toggle") || type.includes("switch")) {
+        return values.length >= 1;
+    }
+
+    if (values.length !== 1) return false;
+
+    const blob = `${filter.key} ${filter.label} ${values[0]?.label ?? ""}`.toLowerCase();
+    return /скидк|discount|новинк|toggle|switch/.test(blob);
+}
+
 function isBrandFilter(filter: ApiFilter): boolean {
     const key = filter.key.trim().toLowerCase();
     const label = filter.label.trim().toLowerCase();
     return key.includes("brand") || label.includes("бренд");
 }
 
+function isDeviceModelFilter(filter: ApiFilter): boolean {
+    const key = filter.key.trim().toLowerCase();
+    const label = filter.label.trim().toLowerCase();
+    return key === "model" || key.includes("device_model") || label.includes("модель");
+}
+
+function withModelFilterFirst<T extends {filter: ApiFilter}>(entries: T[]): T[] {
+    const index = entries.findIndex((entry) => isDeviceModelFilter(entry.filter));
+    if (index <= 0) return entries;
+
+    const next = [...entries];
+    const [modelFilter] = next.splice(index, 1);
+    next.unshift(modelFilter);
+    return next;
+}
+
 function capitalizeFirstLetter(value: string): string {
     if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getDisplayLabel(filter: ApiFilter, label: string): string {
+    return isBrandFilter(filter) ? capitalizeFirstLetter(label) : label;
+}
+
+function getValueKey(value: FilterValue, label: string): string {
+    return typeof value.id === "number" ? String(value.id) : label;
 }
 
 export default function CategoryProductsRendering({categoryPath}: CategoryProductsRenderingProps) {
@@ -238,6 +284,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         () => typeof window !== "undefined" && window.matchMedia(MOBILE_MEDIA_QUERY).matches,
     );
     const [mobilePanel, setMobilePanel] = useState<"filters" | null>(null);
+    const [expandedFilters, setExpandedFilters] = useState<Record<string, boolean>>({});
 
     const productsCountRef = useRef(0);
     const sortRef = useRef("");
@@ -427,6 +474,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             setModelFilters([]);
             setSelectedSkuFilters({});
             setSelectedModelFilters({});
+            setExpandedFilters({});
             setSortOptions([]);
             setSortActive("");
             setCurrentPage(1);
@@ -444,6 +492,19 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
 
     useEffect(() => {
         return () => abortControllerRef.current?.abort();
+    }, []);
+
+    useEffect(() => {
+        const onPointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (sortMenuRef.current && !sortMenuRef.current.contains(target)) {
+                sortMenuRef.current.removeAttribute("open");
+            }
+        };
+
+        document.addEventListener("pointerdown", onPointerDown);
+        return () => document.removeEventListener("pointerdown", onPointerDown);
     }, []);
 
     useEffect(() => {
@@ -468,9 +529,16 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     filter,
                     values: Array.isArray(filter.values) ? filter.values : [],
                 }))
-                .filter((entry) => !isResolutionFilter(entry.filter) && entry.values.length > 1);
+                .filter((entry) => {
+                    if (isResolutionFilter(entry.filter) || isColorFilter(entry.filter)) return false;
+                    if (isBooleanFilter(entry.filter, entry.values)) return entry.values.length >= 1;
+                    return entry.values.length > 1;
+                });
 
-        return [...byKind("sku", skuFilters), ...byKind("model", modelFilters)];
+        return [
+            ...withModelFilterFirst(byKind("sku", skuFilters)),
+            ...byKind("model", modelFilters),
+        ];
     }, [skuFilters, modelFilters]);
     const hasVisualFilters = visualFilters.length > 0;
 
@@ -492,13 +560,174 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             };
         });
     };
-    const clearVisualFilters = () => {
-        setSelectedSkuFilters({});
-        setSelectedModelFilters({});
+    const selectSingleFilterValue = (
+        kind: "sku" | "model",
+        filterKey: string,
+        valueKey: string | null,
+    ) => {
+        const setter = kind === "sku" ? setSelectedSkuFilters : setSelectedModelFilters;
+        setter((prev) => ({
+            ...prev,
+            [filterKey]: valueKey ? [valueKey] : [],
+        }));
     };
-    const hasSelectedFilters =
-        Object.values(selectedSkuFilters).some((items) => items.length > 0) ||
-        Object.values(selectedModelFilters).some((items) => items.length > 0);
+    const getSelectedValues = (kind: "sku" | "model", filterKey: string) =>
+        kind === "sku" ? (selectedSkuFilters[filterKey] ?? []) : (selectedModelFilters[filterKey] ?? []);
+
+    const renderChipList = (
+        kind: "sku" | "model",
+        filter: ApiFilter,
+        values: FilterValue[],
+        selectedValues: string[],
+        expanded: boolean,
+    ) => {
+        const previewCount = isBrandFilter(filter) ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW;
+        const visibleValues = expanded ? values.slice(0, 24) : values.slice(0, previewCount);
+
+        return (
+            <div
+                className={`category-products__chips${isBrandFilter(filter) ? " category-products__chips--brands" : ""}`}
+                role="group"
+                aria-label={filter.label}
+            >
+                {visibleValues.map((value) => {
+                    const valueMeta = getFilterValueMeta(value);
+                    if (!valueMeta) return null;
+
+                    const displayLabel = getDisplayLabel(filter, valueMeta.label);
+                    const valueKey = getValueKey(value, valueMeta.label);
+                    const pressed = selectedValues.includes(valueKey);
+
+                    return (
+                        <button
+                            key={valueKey}
+                            type="button"
+                            aria-pressed={pressed}
+                            className={`category-products__chip${pressed ? " category-products__chip--active" : ""}`}
+                            onClick={() => toggleFilterValue(kind, filter.key, valueKey, !pressed)}
+                        >
+                            {displayLabel}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderCheckList = (
+        kind: "sku" | "model",
+        filter: ApiFilter,
+        values: FilterValue[],
+        selectedValues: string[],
+        expanded: boolean,
+        onToggleExpanded: () => void,
+    ) => {
+        const visibleValues = expanded ? values.slice(0, 24) : values.slice(0, FILTER_LIST_PREVIEW);
+        const canExpand = values.length > FILTER_LIST_PREVIEW;
+
+        return (
+            <>
+                <div className="category-products__check-list" role="group" aria-label={filter.label}>
+                    {visibleValues.map((value) => {
+                        const valueMeta = getFilterValueMeta(value);
+                        if (!valueMeta) return null;
+
+                        const displayLabel = getDisplayLabel(filter, valueMeta.label);
+                        const valueKey = getValueKey(value, valueMeta.label);
+                        const checked = selectedValues.includes(valueKey);
+
+                        return (
+                            <label key={valueKey} className="category-products__check">
+                                <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={(event) => {
+                                        toggleFilterValue(kind, filter.key, valueKey, event.target.checked);
+                                    }}
+                                />
+                                <span>{displayLabel}</span>
+                            </label>
+                        );
+                    })}
+                </div>
+                {canExpand && (
+                    <button type="button" className="category-products__filter-more" onClick={onToggleExpanded}>
+                        {expanded ? "Скрыть" : "Посмотреть все"}
+                    </button>
+                )}
+            </>
+        );
+    };
+
+    const renderPriceFilter = (
+        kind: "sku" | "model",
+        filter: ApiFilter,
+        values: FilterValue[],
+        selectedValues: string[],
+        placeholders: {from: string; to: string},
+    ) => (
+        <>
+            <div className="category-products__price-range">
+                <input type="text" readOnly value={placeholders.from}/>
+                <input type="text" readOnly value={placeholders.to}/>
+            </div>
+            <div className="category-products__radio-list" role="radiogroup" aria-label={filter.label}>
+                {values.slice(0, 12).map((value) => {
+                    const valueMeta = getFilterValueMeta(value);
+                    if (!valueMeta) return null;
+
+                    const valueKey = getValueKey(value, valueMeta.label);
+                    const checked = selectedValues.includes(valueKey);
+
+                    return (
+                        <label key={valueKey} className="category-products__radio">
+                            <input
+                                type="radio"
+                                name={`filter-price-${kind}-${filter.key}`}
+                                checked={checked}
+                                onChange={() => selectSingleFilterValue(kind, filter.key, valueKey)}
+                            />
+                            <span>{valueMeta.label}</span>
+                        </label>
+                    );
+                })}
+                <label className="category-products__radio">
+                    <input
+                        type="radio"
+                        name={`filter-price-${kind}-${filter.key}`}
+                        checked={selectedValues.length === 0}
+                        onChange={() => selectSingleFilterValue(kind, filter.key, null)}
+                    />
+                    <span>Неважно</span>
+                </label>
+            </div>
+        </>
+    );
+
+    const renderBooleanFilter = (
+        kind: "sku" | "model",
+        filter: ApiFilter,
+        values: FilterValue[],
+        selectedValues: string[],
+    ) => {
+        const value = values[0];
+        const valueMeta = value ? getFilterValueMeta(value) : null;
+        const valueKey = value ? getValueKey(value, valueMeta?.label ?? "1") : "1";
+        const on = selectedValues.includes(valueKey);
+
+        return (
+            <div className="category-products__toggle-row">
+                <h4>{filter.label}</h4>
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={on}
+                    className={`category-products__toggle${on ? " category-products__toggle--on" : ""}`}
+                    onClick={() => toggleFilterValue(kind, filter.key, valueKey, !on)}
+                />
+            </div>
+        );
+    };
 
     const handlePageChange = (page: number) => {
         if (loading || page === currentPage || page < 1 || page > totalPages) return;
@@ -558,112 +787,85 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                         <section className="category-products__filters" aria-label="Фильтры">
                             {isMobileViewport && (
                                 <header className="category-products__filters-mobile-head">
-                                    <h3>Фильтр</h3>
-                                    <div className="category-products__filters-mobile-actions">
-                                        <button
-                                            type="button"
-                                            className="category-products__filters-reset"
-                                            disabled={!hasSelectedFilters}
-                                            onClick={clearVisualFilters}
-                                        >
-                                            Сбросить
-                                        </button>
-                                        <button
-                                            type="button"
-                                            aria-label="Закрыть фильтры"
-                                            onClick={() => setMobilePanel(null)}
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                </header>
-                            )}
-                            {!isMobileViewport && (
-                                <div className="category-products__filters-head">
-                                    <div className="category-products__filters-title">
-                                        <span className="category-products__action-filter-icon" aria-hidden/>
-                                        <span>Фильтры</span>
-                                    </div>
+                                    <h3>Фильтры</h3>
                                     <button
                                         type="button"
-                                        className="category-products__filters-reset"
-                                        disabled={!hasSelectedFilters}
-                                        onClick={clearVisualFilters}
+                                        className="category-products__filters-mobile-cancel"
+                                        onClick={() => setMobilePanel(null)}
                                     >
-                                        Сбросить
+                                        Отмена
                                     </button>
-                                </div>
+                                </header>
                             )}
 
                             <div className="category-products__filters-grid">
                                 {visualFilters.map(({kind, filter, values}) => {
                                     const isPrice = isPriceFilter(filter);
+                                    const isBoolean = isBooleanFilter(filter, values);
+                                    const isBrand = isBrandFilter(filter);
                                     const pricePlaceholders = isPrice ? getPricePlaceholders(values) : null;
+                                    const selectedValues = getSelectedValues(kind, filter.key);
+                                    const expandKey = `${kind}-${filter.key}`;
+                                    const expanded = Boolean(expandedFilters[expandKey]);
+                                    const listPreviewCount = isMobileViewport
+                                        ? (isBrand ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW)
+                                        : FILTER_LIST_PREVIEW;
+                                    const canExpand = isPrice || isBoolean
+                                        ? false
+                                        : values.length > listPreviewCount;
+                                    const toggleExpanded = () => {
+                                        setExpandedFilters((prev) => ({
+                                            ...prev,
+                                            [expandKey]: !prev[expandKey],
+                                        }));
+                                    };
 
-                                    const selectedValues =
-                                        selectedSkuFilters[filter.key] ??
-                                        selectedModelFilters[filter.key] ??
-                                        [];
+                                    if (isBoolean) {
+                                        return (
+                                            <section key={filter.key} className="category-products__filter-group">
+                                                {renderBooleanFilter(kind, filter, values, selectedValues)}
+                                            </section>
+                                        );
+                                    }
 
                                     return (
-                                        <details key={filter.key} className="category-products__filter-group" open={isPrice}>
-                                            <summary>{filter.label}</summary>
-                                            {isPrice && pricePlaceholders && (
-                                                <div className="category-products__price-range">
-                                                    <input type="text" readOnly value={pricePlaceholders.from}/>
-                                                    <input type="text" readOnly value={pricePlaceholders.to}/>
-                                                </div>
-                                            )}
-                                            <div className="category-products__filter-values">
-                                                {values.slice(0, 24).map((value, idx) => {
-                                                    const valueMeta = getFilterValueMeta(value);
-                                                    if (!valueMeta) return null;
-                                                    const displayLabel = isBrandFilter(filter)
-                                                        ? capitalizeFirstLetter(valueMeta.label)
-                                                        : valueMeta.label;
-
-                                                    const valueKey = typeof value.id === "number" ? String(value.id) : valueMeta.label;
-                                                    const inputId = `filter-${filter.key}-${idx}`;
-                                                    const checked = selectedValues.includes(valueKey);
-
-                                                    return (
-                                                        <label key={valueKey} htmlFor={inputId} className="category-products__filter-value">
-                                                            <input
-                                                                id={inputId}
-                                                                type="checkbox"
-                                                                checked={checked}
-                                                                onChange={(event) => {
-                                                                    toggleFilterValue(
-                                                                        kind,
-                                                                        filter.key,
-                                                                        valueKey,
-                                                                        event.target.checked,
-                                                                    );
-                                                                }}
-                                                            />
-                                                            <span className="category-products__filter-value-text">
-                                                                <span className="category-products__filter-value-line">
-                                                                    <span className="category-products__filter-value-label">{displayLabel}</span>
-                                                                    {valueMeta.count && (
-                                                                        <span className="category-products__filter-value-count">
-                                                                            ({valueMeta.count})
-                                                                        </span>
-                                                                    )}
-                                                                </span>
-                                                                {valueMeta.subtitle && (
-                                                                    <span className="category-products__filter-value-subtitle">
-                                                                        {valueMeta.subtitle}
-                                                                    </span>
-                                                                )}
-                                                            </span>
-                                                        </label>
-                                                    );
-                                                })}
+                                        <section key={filter.key} className="category-products__filter-group">
+                                            <div className="category-products__filter-head">
+                                                <h4>{filter.label}</h4>
+                                                {isMobileViewport && canExpand && (
+                                                    <button
+                                                        type="button"
+                                                        className="category-products__filter-all"
+                                                        onClick={toggleExpanded}
+                                                    >
+                                                        {expanded ? "Скрыть" : "Все"}
+                                                    </button>
+                                                )}
                                             </div>
-                                        </details>
+                                            {isPrice && pricePlaceholders
+                                                ? renderPriceFilter(kind, filter, values, selectedValues, pricePlaceholders)
+                                                : isMobileViewport
+                                                    ? renderChipList(kind, filter, values, selectedValues, expanded)
+                                                    : renderCheckList(
+                                                        kind,
+                                                        filter,
+                                                        values,
+                                                        selectedValues,
+                                                        expanded,
+                                                        toggleExpanded,
+                                                    )}
+                                        </section>
                                     );
                                 })}
                             </div>
+
+                            {isMobileViewport && (
+                                <footer className="category-products__filters-mobile-footer">
+                                    <button type="button" onClick={() => setMobilePanel(null)}>
+                                        Готово
+                                    </button>
+                                </footer>
+                            )}
                         </section>
                     </aside>
                 )}
