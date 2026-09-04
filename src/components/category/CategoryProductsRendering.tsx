@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Link from "next/link";
+import {SearchOutlined} from "@ant-design/icons";
 
 import ProductCard, {type ShortSpec} from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
@@ -261,6 +262,20 @@ function getValueKey(value: FilterValue, label: string): string {
     return typeof value.id === "number" ? String(value.id) : label;
 }
 
+function normalizeSearchText(value: string): string {
+    return value.trim().toLowerCase().replaceAll("ё", "е");
+}
+
+function valueMatchesQuery(filter: ApiFilter, value: FilterValue, query: string): boolean {
+    const normalizedQuery = normalizeSearchText(query);
+    if (!normalizedQuery) return true;
+
+    const valueMeta = getFilterValueMeta(value);
+    if (!valueMeta) return false;
+
+    return normalizeSearchText(getDisplayLabel(filter, valueMeta.label)).includes(normalizedQuery);
+}
+
 export default function CategoryProductsRendering({categoryPath}: CategoryProductsRenderingProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -285,15 +300,68 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     );
     const [mobilePanel, setMobilePanel] = useState<"filters" | null>(null);
     const [expandedFilters, setExpandedFilters] = useState<Record<string, boolean>>({});
+    const [filterQueries, setFilterQueries] = useState<Record<string, string>>({});
+    const [applyAnchor, setApplyAnchor] = useState<{top: number; left: number} | null>(null);
+    const [modelResetInView, setModelResetInView] = useState(true);
 
     const productsCountRef = useRef(0);
     const sortRef = useRef("");
     const pathRef = useRef(normalizePath(categoryPath));
     const topAnchorRef = useRef<HTMLDivElement | null>(null);
     const sortMenuRef = useRef<HTMLDetailsElement | null>(null);
+    const sidebarRef = useRef<HTMLElement | null>(null);
+    const filtersGridRef = useRef<HTMLDivElement | null>(null);
+    const modelResetRef = useRef<HTMLButtonElement | null>(null);
+    const applyButtonRef = useRef<HTMLButtonElement | null>(null);
+    const applyAnchorElRef = useRef<HTMLElement | null>(null);
     const lockedScrollYRef = useRef(0);
     const requestIdRef = useRef(0);
     const abortControllerRef = useRef<AbortController | null>(null);
+
+    const hideApplyButton = () => {
+        applyAnchorElRef.current = null;
+        setApplyAnchor(null);
+    };
+
+    const syncApplyButtonPosition = () => {
+        const row = applyAnchorElRef.current;
+        const sidebar = sidebarRef.current;
+        const grid = filtersGridRef.current;
+        if (!row || !sidebar) {
+            hideApplyButton();
+            return;
+        }
+
+        const rowRect = row.getBoundingClientRect();
+        const view = (grid ?? sidebar).getBoundingClientRect();
+        if (rowRect.bottom < view.top + 8 || rowRect.top > view.bottom - 8) {
+            hideApplyButton();
+            return;
+        }
+
+        const innerRight = view.left + (grid ?? sidebar).clientWidth;
+        setApplyAnchor({
+            top: rowRect.top + rowRect.height / 2,
+            left: innerRight - 8,
+        });
+    };
+
+    const revealApplyButton = (target: EventTarget | null) => {
+        if (typeof window !== "undefined" && window.matchMedia(MOBILE_MEDIA_QUERY).matches) {
+            hideApplyButton();
+            return;
+        }
+
+        if (!(target instanceof HTMLElement)) return;
+
+        const row =
+            target.closest("label, .category-products__toggle-row, .category-products__chip") ??
+            target;
+        if (!(row instanceof HTMLElement)) return;
+
+        applyAnchorElRef.current = row;
+        syncApplyButtonPosition();
+    };
 
     const loadProducts = useCallback(async (page: number) => {
         requestIdRef.current += 1;
@@ -475,6 +543,9 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             setSelectedSkuFilters({});
             setSelectedModelFilters({});
             setExpandedFilters({});
+            setFilterQueries({});
+            setApplyAnchor(null);
+            applyAnchorElRef.current = null;
             setSortOptions([]);
             setSortActive("");
             setCurrentPage(1);
@@ -506,6 +577,44 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         document.addEventListener("pointerdown", onPointerDown);
         return () => document.removeEventListener("pointerdown", onPointerDown);
     }, []);
+
+    useEffect(() => {
+        if (isMobileViewport) hideApplyButton();
+    }, [isMobileViewport]);
+
+    useEffect(() => {
+        if (!applyAnchor) return;
+
+        const sidebar = sidebarRef.current;
+        const grid = filtersGridRef.current;
+        const onSync = () => syncApplyButtonPosition();
+        sidebar?.addEventListener("scroll", onSync, {passive: true});
+        grid?.addEventListener("scroll", onSync, {passive: true});
+        window.addEventListener("scroll", onSync, {passive: true});
+        window.addEventListener("resize", onSync);
+
+        return () => {
+            sidebar?.removeEventListener("scroll", onSync);
+            grid?.removeEventListener("scroll", onSync);
+            window.removeEventListener("scroll", onSync);
+            window.removeEventListener("resize", onSync);
+        };
+    }, [applyAnchor]);
+
+    useEffect(() => {
+        if (!applyAnchor) return;
+
+        const onPointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (applyButtonRef.current?.contains(target)) return;
+            if (target instanceof Element && target.closest(".category-products__filters")) return;
+            hideApplyButton();
+        };
+
+        document.addEventListener("pointerdown", onPointerDown);
+        return () => document.removeEventListener("pointerdown", onPointerDown);
+    }, [applyAnchor]);
 
     useEffect(() => {
         if (!error) return;
@@ -571,8 +680,67 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             [filterKey]: valueKey ? [valueKey] : [],
         }));
     };
+    const hasAnySelectedFilters =
+        Object.values(selectedSkuFilters).some((values) => values.length > 0) ||
+        Object.values(selectedModelFilters).some((values) => values.length > 0);
+
     const getSelectedValues = (kind: "sku" | "model", filterKey: string) =>
         kind === "sku" ? (selectedSkuFilters[filterKey] ?? []) : (selectedModelFilters[filterKey] ?? []);
+
+    const clearAllSelectedFilters = () => {
+        setSelectedSkuFilters({});
+        setSelectedModelFilters({});
+        setModelResetInView(true);
+        hideApplyButton();
+    };
+
+    useEffect(() => {
+        if (!hasAnySelectedFilters || isMobileViewport) {
+            setModelResetInView(true);
+            return;
+        }
+
+        const target = modelResetRef.current;
+        const root = filtersGridRef.current;
+        if (!root) return;
+
+        if (!target) {
+            setModelResetInView(false);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setModelResetInView(Boolean(entry?.isIntersecting));
+            },
+            {root, threshold: 0},
+        );
+        observer.observe(target);
+        return () => observer.disconnect();
+    }, [hasAnySelectedFilters, isMobileViewport, visualFilters.length]);
+
+    const renderFilterSearch = (searchKey: string, label: string) => (
+        <label className="category-products__filter-search">
+            <input
+                type="text"
+                value={filterQueries[searchKey] ?? ""}
+                placeholder="Искать..."
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                aria-label={`Искать в фильтре ${label}`}
+                onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setFilterQueries((prev) => ({
+                        ...prev,
+                        [searchKey]: nextValue,
+                    }));
+                    hideApplyButton();
+                }}
+            />
+            <SearchOutlined className="category-products__filter-search-icon" aria-hidden/>
+        </label>
+    );
 
     const renderChipList = (
         kind: "sku" | "model",
@@ -580,9 +748,12 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         values: FilterValue[],
         selectedValues: string[],
         expanded: boolean,
+        showAll = false,
     ) => {
         const previewCount = isBrandFilter(filter) ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW;
-        const visibleValues = expanded ? values.slice(0, 24) : values.slice(0, previewCount);
+        const visibleValues = showAll || expanded
+            ? values
+            : values.slice(0, previewCount);
 
         return (
             <div
@@ -621,9 +792,12 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         selectedValues: string[],
         expanded: boolean,
         onToggleExpanded: () => void,
+        showAll = false,
     ) => {
-        const visibleValues = expanded ? values.slice(0, 24) : values.slice(0, FILTER_LIST_PREVIEW);
-        const canExpand = values.length > FILTER_LIST_PREVIEW;
+        const visibleValues = showAll || expanded
+            ? values
+            : values.slice(0, FILTER_LIST_PREVIEW);
+        const canExpand = !showAll && values.length > FILTER_LIST_PREVIEW;
 
         return (
             <>
@@ -643,6 +817,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                     checked={checked}
                                     onChange={(event) => {
                                         toggleFilterValue(kind, filter.key, valueKey, event.target.checked);
+                                        revealApplyButton(event.currentTarget);
                                     }}
                                 />
                                 <span>{displayLabel}</span>
@@ -685,7 +860,10 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                 type="radio"
                                 name={`filter-price-${kind}-${filter.key}`}
                                 checked={checked}
-                                onChange={() => selectSingleFilterValue(kind, filter.key, valueKey)}
+                                onChange={(event) => {
+                                    selectSingleFilterValue(kind, filter.key, valueKey);
+                                    revealApplyButton(event.currentTarget);
+                                }}
                             />
                             <span>{valueMeta.label}</span>
                         </label>
@@ -696,7 +874,10 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                         type="radio"
                         name={`filter-price-${kind}-${filter.key}`}
                         checked={selectedValues.length === 0}
-                        onChange={() => selectSingleFilterValue(kind, filter.key, null)}
+                        onChange={(event) => {
+                            selectSingleFilterValue(kind, filter.key, null);
+                            revealApplyButton(event.currentTarget);
+                        }}
                     />
                     <span>Неважно</span>
                 </label>
@@ -723,7 +904,10 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     role="switch"
                     aria-checked={on}
                     className={`category-products__toggle${on ? " category-products__toggle--on" : ""}`}
-                    onClick={() => toggleFilterValue(kind, filter.key, valueKey, !on)}
+                    onClick={(event) => {
+                        toggleFilterValue(kind, filter.key, valueKey, !on);
+                        revealApplyButton(event.currentTarget);
+                    }}
                 />
             </div>
         );
@@ -772,6 +956,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             <div className={`category-products__layout${hasVisualFilters && !pathError && !error ? "" : " category-products__layout--no-filters"}`}>
                 {!pathError && !error && hasVisualFilters && (
                     <aside
+                        ref={sidebarRef}
                         className={`category-products__sidebar${isMobileViewport ? " category-products__sidebar--mobile" : ""}${mobilePanel === "filters" ? " category-products__sidebar--open" : ""}`}
                         aria-hidden={isMobileViewport && mobilePanel !== "filters"}
                     >
@@ -798,7 +983,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                 </header>
                             )}
 
-                            <div className="category-products__filters-grid">
+                            <div ref={filtersGridRef} className="category-products__filters-grid">
                                 {visualFilters.map(({kind, filter, values}) => {
                                     const isPrice = isPriceFilter(filter);
                                     const isBoolean = isBooleanFilter(filter, values);
@@ -807,10 +992,17 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                     const selectedValues = getSelectedValues(kind, filter.key);
                                     const expandKey = `${kind}-${filter.key}`;
                                     const expanded = Boolean(expandedFilters[expandKey]);
+                                    const query = filterQueries[expandKey] ?? "";
+                                    const hasQuery = query.trim().length > 0;
+                                    const matchedValues = hasQuery
+                                        ? values.filter((value) => valueMatchesQuery(filter, value, query))
+                                        : values;
+                                    const showSearch = kind === "sku" && !isPrice && !isBoolean;
+                                    const showModelReset = isDeviceModelFilter(filter) && hasAnySelectedFilters;
                                     const listPreviewCount = isMobileViewport
                                         ? (isBrand ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW)
                                         : FILTER_LIST_PREVIEW;
-                                    const canExpand = isPrice || isBoolean
+                                    const canExpand = isPrice || isBoolean || hasQuery
                                         ? false
                                         : values.length > listPreviewCount;
                                     const toggleExpanded = () => {
@@ -818,6 +1010,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                             ...prev,
                                             [expandKey]: !prev[expandKey],
                                         }));
+                                        hideApplyButton();
                                     };
 
                                     if (isBoolean) {
@@ -832,32 +1025,69 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                         <section key={filter.key} className="category-products__filter-group">
                                             <div className="category-products__filter-head">
                                                 <h4>{filter.label}</h4>
-                                                {isMobileViewport && canExpand && (
-                                                    <button
-                                                        type="button"
-                                                        className="category-products__filter-all"
-                                                        onClick={toggleExpanded}
-                                                    >
-                                                        {expanded ? "Скрыть" : "Все"}
-                                                    </button>
+                                                {(showModelReset || (isMobileViewport && canExpand)) && (
+                                                    <div className="category-products__filter-head-actions">
+                                                        {showModelReset && (
+                                                            <button
+                                                                ref={modelResetRef}
+                                                                type="button"
+                                                                className="category-products__filter-reset"
+                                                                onClick={clearAllSelectedFilters}
+                                                            >
+                                                                Сбросить все
+                                                            </button>
+                                                        )}
+                                                        {isMobileViewport && canExpand && (
+                                                            <button
+                                                                type="button"
+                                                                className="category-products__filter-all"
+                                                                onClick={toggleExpanded}
+                                                            >
+                                                                {expanded ? "Скрыть" : "Все"}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
+                                            {showSearch ? renderFilterSearch(expandKey, filter.label) : null}
                                             {isPrice && pricePlaceholders
                                                 ? renderPriceFilter(kind, filter, values, selectedValues, pricePlaceholders)
-                                                : isMobileViewport
-                                                    ? renderChipList(kind, filter, values, selectedValues, expanded)
-                                                    : renderCheckList(
-                                                        kind,
-                                                        filter,
-                                                        values,
-                                                        selectedValues,
-                                                        expanded,
-                                                        toggleExpanded,
-                                                    )}
+                                                : hasQuery && matchedValues.length === 0
+                                                    ? <p className="category-products__filter-empty">Ничего не найдено</p>
+                                                    : isMobileViewport
+                                                        ? renderChipList(
+                                                            kind,
+                                                            filter,
+                                                            matchedValues,
+                                                            selectedValues,
+                                                            expanded,
+                                                            hasQuery,
+                                                        )
+                                                        : renderCheckList(
+                                                            kind,
+                                                            filter,
+                                                            matchedValues,
+                                                            selectedValues,
+                                                            expanded,
+                                                            toggleExpanded,
+                                                            hasQuery,
+                                                        )}
                                         </section>
                                     );
                                 })}
                             </div>
+
+                            {hasAnySelectedFilters && !modelResetInView && !isMobileViewport && (
+                                <div className="category-products__filter-reset-dock">
+                                    <button
+                                        type="button"
+                                        className="category-products__filter-reset-btn"
+                                        onClick={clearAllSelectedFilters}
+                                    >
+                                        Сбросить все фильтры
+                                    </button>
+                                </div>
+                            )}
 
                             {isMobileViewport && (
                                 <footer className="category-products__filters-mobile-footer">
@@ -1048,6 +1278,19 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     )}
                 </section>
             </div>
+
+            {applyAnchor && !isMobileViewport ? (
+                <button
+                    ref={applyButtonRef}
+                    type="button"
+                    className="category-products__apply"
+                    style={{top: applyAnchor.top, left: applyAnchor.left}}
+                    aria-label="Применить"
+                    onClick={hideApplyButton}
+                >
+                    OK
+                </button>
+            ) : null}
         </>
     );
 }
