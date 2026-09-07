@@ -2,12 +2,19 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Link from "next/link";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {SearchOutlined} from "@ant-design/icons";
 
 import ProductCard, {type ShortSpec} from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 import CatalogBreadcrumbs from "@/components/catalog/CatalogBreadcrumbs";
+import {
+    applyListingToCategoryParams,
+    buildListingSearch,
+    parsePageParam,
+    readFilterParams,
+} from "@/components/catalog/catalogListingSearch";
 
 import "../css/ProductGrid.css";
 import "../css/CategoryProducts.css";
@@ -51,7 +58,7 @@ interface ApiFilter {
     key: string;
     label: string;
     type?: string;
-    values?: FilterValue[];
+    values?: Array<string | FilterValue>;
     active?: unknown[];
 }
 
@@ -125,6 +132,22 @@ function forceScrollToTop(anchor: HTMLDivElement | null) {
     if (main instanceof HTMLElement) {
         main.scrollTo({top: targetTop, left: 0, behavior: "auto"});
     }
+}
+
+function normalizeFilterValue(value: string | FilterValue): FilterValue | null {
+    if (typeof value === "string") {
+        const label = value.trim();
+        return label ? {label} : null;
+    }
+
+    return value;
+}
+
+function getFilterValues(filter: ApiFilter): FilterValue[] {
+    if (!Array.isArray(filter.values)) return [];
+    return filter.values
+        .map(normalizeFilterValue)
+        .filter((value): value is FilterValue => value !== null);
 }
 
 function getFilterValueMeta(value: FilterValue): {label: string; count: string; subtitle: string} | null {
@@ -245,8 +268,13 @@ function getDisplayLabel(filter: ApiFilter, label: string): string {
     return isBrandFilter(filter) ? capitalizeFirstLetter(label) : label;
 }
 
-function getValueKey(value: FilterValue, label: string): string {
-    return typeof value.id === "number" ? String(value.id) : label;
+function getValueKey(
+    kind: "sku" | "model",
+    _filter: ApiFilter,
+    value: FilterValue,
+    label: string,
+): string {
+    return kind === "model" ? label : String(value.id);
 }
 
 function normalizeSearchText(value: string): string {
@@ -263,7 +291,24 @@ function valueMatchesQuery(filter: ApiFilter, value: FilterValue, query: string)
     return normalizeSearchText(getDisplayLabel(filter, valueMeta.label)).includes(normalizedQuery);
 }
 
+function getWindowListingSearch(): string {
+    if (typeof window === "undefined") return "";
+    return window.location.search.replace(/^\?/, "");
+}
+
 export default function CategoryProductsRendering({categoryPath}: CategoryProductsRenderingProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const urlListingSearch = searchParams.toString();
+    const [listingSearch, setListingSearch] = useState(urlListingSearch);
+    const urlFilters = useMemo(
+        () => readFilterParams(new URLSearchParams(listingSearch)),
+        [listingSearch],
+    );
+    const urlSort = new URLSearchParams(listingSearch).get("sort") ?? "";
+    const urlPage = parsePageParam(new URLSearchParams(listingSearch).get("page"));
+
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -272,11 +317,10 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [skuFilters, setSkuFilters] = useState<ApiFilter[]>([]);
     const [modelFilters, setModelFilters] = useState<ApiFilter[]>([]);
-    const [selectedSkuFilters, setSelectedSkuFilters] = useState<Record<string, string[]>>({});
-    const [selectedModelFilters, setSelectedModelFilters] = useState<Record<string, string[]>>({});
+    const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>(urlFilters);
     const [sortOptions, setSortOptions] = useState<SortOption[]>([]);
     const [sortActive, setSortActive] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(urlPage);
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize, setPageSize] = useState(getPageSizeForViewport);
     const [isCompactPagination, setIsCompactPagination] = useState(
@@ -292,8 +336,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     const [modelResetInView, setModelResetInView] = useState(true);
 
     const productsCountRef = useRef(0);
-    const sortRef = useRef("");
-    const pathRef = useRef(normalizePath(categoryPath));
+    const listingSearchRef = useRef(listingSearch);
     const topAnchorRef = useRef<HTMLDivElement | null>(null);
     const sortMenuRef = useRef<HTMLDetailsElement | null>(null);
     const sidebarRef = useRef<HTMLElement | null>(null);
@@ -350,7 +393,28 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         syncApplyButtonPosition();
     };
 
-    const loadProducts = useCallback(async (page: number) => {
+    const replaceListingUrl = useCallback((next: {
+        filters?: Record<string, string[]>;
+        sort?: string;
+        page?: number;
+    }) => {
+        const listing = new URLSearchParams(listingSearchRef.current);
+        const query = buildListingSearch({
+            filters: next.filters ?? readFilterParams(listing),
+            sort: next.sort ?? listing.get("sort") ?? "",
+            page: next.page ?? parsePageParam(listing.get("page")),
+        });
+        if (query === listingSearchRef.current) return;
+
+        listingSearchRef.current = query;
+        setListingSearch(query);
+        const href = query ? `${pathname}?${query}` : pathname;
+        router.replace(href, {scroll: false});
+    }, [pathname, router]);
+
+    const loadProducts = useCallback(async () => {
+        const listing = new URLSearchParams(listingSearchRef.current);
+        const page = parsePageParam(listing.get("page"));
         requestIdRef.current += 1;
         const requestId = requestIdRef.current;
         abortControllerRef.current?.abort();
@@ -360,13 +424,9 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
 
         try {
             const params = new URLSearchParams({
-                path: pathRef.current,
-                page: page.toString(),
-                limit: pageSize.toString(),
+                path: normalizePath(categoryPath),
             });
-            if (sortRef.current) {
-                params.set("sort", sortRef.current);
-            }
+            applyListingToCategoryParams(params, listing, pageSize);
 
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api3/category?${params.toString()}`,
@@ -390,7 +450,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             }
 
             if (!res.ok) {
-                if (res && (res.status === 400 || res.status === 404)) {
+                if (res.status === 400 || res.status === 404) {
                     setPathError(true);
                     setError(false);
                     setPageError(false);
@@ -427,7 +487,6 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                 return;
             }
 
-            sortRef.current = nextSortActive;
             setSortOptions(nextSortOptions);
             setSortActive(nextSortActive);
             setSkuFilters(nextSkuFilters);
@@ -455,7 +514,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                 setLoading(false);
             }
         }
-    }, [pageSize]);
+    }, [categoryPath, listingSearch, pageSize]);
 
     useEffect(() => {
         productsCountRef.current = products.length;
@@ -521,32 +580,48 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     }, [mobilePanel, isMobileViewport]);
 
     useEffect(() => {
-        pathRef.current = normalizePath(categoryPath);
-        sortRef.current = "";
+        const actual = getWindowListingSearch();
+        if (actual === listingSearchRef.current) return;
+        listingSearchRef.current = actual;
+        setListingSearch(actual);
+    }, [urlListingSearch]);
 
-        const id = setTimeout(() => {
-            setSkuFilters([]);
-            setModelFilters([]);
-            setSelectedSkuFilters({});
-            setSelectedModelFilters({});
-            setExpandedFilters({});
-            setFilterQueries({});
-            setApplyAnchor(null);
-            applyAnchorElRef.current = null;
-            setSortOptions([]);
-            setSortActive("");
-            setCurrentPage(1);
-            setTotalPages(1);
-            setProducts([]);
-            setBreadcrumbs([]);
-            setError(false);
-            setPathError(false);
-            setPageError(false);
-            void loadProducts(1);
-        }, 0);
+    useEffect(() => {
+        const onPopState = () => {
+            const actual = getWindowListingSearch();
+            if (actual === listingSearchRef.current) return;
+            listingSearchRef.current = actual;
+            setListingSearch(actual);
+        };
+        window.addEventListener("popstate", onPopState);
+        return () => window.removeEventListener("popstate", onPopState);
+    }, []);
 
-        return () => clearTimeout(id);
-    }, [categoryPath, pageSize, loadProducts]);
+    useEffect(() => {
+        setSelectedFilters(readFilterParams(new URLSearchParams(listingSearch)));
+    }, [listingSearch]);
+
+    useEffect(() => {
+        setExpandedFilters({});
+        setFilterQueries({});
+        hideApplyButton();
+        setMobilePanel(null);
+        setSkuFilters([]);
+        setModelFilters([]);
+        setSortOptions([]);
+        setSortActive("");
+        setCurrentPage(1);
+        setTotalPages(1);
+        setProducts([]);
+        setBreadcrumbs([]);
+        setError(false);
+        setPathError(false);
+        setPageError(false);
+    }, [categoryPath]);
+
+    useEffect(() => {
+        void loadProducts();
+    }, [loadProducts]);
 
     useEffect(() => {
         return () => abortControllerRef.current?.abort();
@@ -607,23 +682,24 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         if (!error) return;
 
         const id = setInterval(() => {
-            void loadProducts(currentPage);
+            void loadProducts();
         }, 20000);
 
         return () => clearInterval(id);
-    }, [currentPage, error, loadProducts]);
+    }, [error, loadProducts]);
 
     const isInitialLoad = loading && products.length === 0;
     const skeletonCount = 12;
     const pageItems = buildPageItems(currentPage, totalPages, isCompactPagination);
-    const activeSortLabel = sortOptions.find((option) => option.key === sortActive)?.label ?? "Сортировка";
+    const uiSort = urlSort || sortActive;
+    const activeSortLabel = sortOptions.find((option) => option.key === uiSort)?.label ?? "Сортировка";
     const visualFilters = useMemo(() => {
         const byKind = (kind: "sku" | "model", filters: ApiFilter[]) =>
             filters
                 .map((filter) => ({
                     kind,
                     filter,
-                    values: Array.isArray(filter.values) ? filter.values : [],
+                    values: getFilterValues(filter),
                 }))
                 .filter((entry) => {
                     if (isResolutionFilter(entry.filter) || isColorFilter(entry.filter)) return false;
@@ -638,47 +714,66 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     }, [skuFilters, modelFilters]);
     const hasVisualFilters = visualFilters.length > 0;
 
+    const commitListingFilters = (filters: Record<string, string[]>) => {
+        hideApplyButton();
+        setPageError(false);
+        replaceListingUrl({filters, page: 1});
+    };
+
+    const applySelectedFilters = (filters = selectedFilters) => {
+        commitListingFilters(filters);
+        setMobilePanel(null);
+        forceScrollToTop(topAnchorRef.current);
+    };
+
     const toggleFilterValue = (
-        kind: "sku" | "model",
+        _kind: "sku" | "model",
         filterKey: string,
         valueKey: string,
         checked: boolean,
     ) => {
-        const setter = kind === "sku" ? setSelectedSkuFilters : setSelectedModelFilters;
-        setter((prev) => {
-            const current = prev[filterKey] ?? [];
-            const next = checked
-                ? [...current, valueKey]
-                : current.filter((item) => item !== valueKey);
-            return {
-                ...prev,
-                [filterKey]: next,
-            };
-        });
+        const current = selectedFilters[filterKey] ?? [];
+        const nextValues = checked
+            ? [...current, valueKey]
+            : current.filter((item) => item !== valueKey);
+        const next = {
+            ...selectedFilters,
+            [filterKey]: nextValues,
+        };
+        setSelectedFilters(next);
+        commitListingFilters(next);
     };
     const selectSingleFilterValue = (
-        kind: "sku" | "model",
+        _kind: "sku" | "model",
         filterKey: string,
         valueKey: string | null,
     ) => {
-        const setter = kind === "sku" ? setSelectedSkuFilters : setSelectedModelFilters;
-        setter((prev) => ({
-            ...prev,
+        const next = {
+            ...selectedFilters,
             [filterKey]: valueKey ? [valueKey] : [],
-        }));
+        };
+        setSelectedFilters(next);
+        commitListingFilters(next);
     };
-    const hasAnySelectedFilters =
-        Object.values(selectedSkuFilters).some((values) => values.length > 0) ||
-        Object.values(selectedModelFilters).some((values) => values.length > 0);
+    const hasAnySelectedFilters = Object.values(selectedFilters).some((values) => values.length > 0);
 
-    const getSelectedValues = (kind: "sku" | "model", filterKey: string) =>
-        kind === "sku" ? (selectedSkuFilters[filterKey] ?? []) : (selectedModelFilters[filterKey] ?? []);
+    const getSelectedValues = (_kind: "sku" | "model", filterKey: string) =>
+        selectedFilters[filterKey] ?? [];
 
     const clearAllSelectedFilters = () => {
-        setSelectedSkuFilters({});
-        setSelectedModelFilters({});
+        setSelectedFilters({});
         setModelResetInView(true);
         hideApplyButton();
+        setPageError(false);
+        forceScrollToTop(topAnchorRef.current);
+        replaceListingUrl({filters: {}, page: 1});
+    };
+
+    const applySort = (sort: string) => {
+        setPageError(false);
+        sortMenuRef.current?.removeAttribute("open");
+        forceScrollToTop(topAnchorRef.current);
+        replaceListingUrl({sort, page: 1});
     };
 
     useEffect(() => {
@@ -753,7 +848,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     if (!valueMeta) return null;
 
                     const displayLabel = getDisplayLabel(filter, valueMeta.label);
-                    const valueKey = getValueKey(value, valueMeta.label);
+                    const valueKey = getValueKey(kind, filter, value, valueMeta.label);
                     const pressed = selectedValues.includes(valueKey);
 
                     return (
@@ -794,7 +889,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                         if (!valueMeta) return null;
 
                         const displayLabel = getDisplayLabel(filter, valueMeta.label);
-                        const valueKey = getValueKey(value, valueMeta.label);
+                        const valueKey = getValueKey(kind, filter, value, valueMeta.label);
                         const checked = selectedValues.includes(valueKey);
 
                         return (
@@ -838,7 +933,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     const valueMeta = getFilterValueMeta(value);
                     if (!valueMeta) return null;
 
-                    const valueKey = getValueKey(value, valueMeta.label);
+                    const valueKey = getValueKey(kind, filter, value, valueMeta.label);
                     const checked = selectedValues.includes(valueKey);
 
                     return (
@@ -880,7 +975,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
     ) => {
         const value = values[0];
         const valueMeta = value ? getFilterValueMeta(value) : null;
-        const valueKey = value ? getValueKey(value, valueMeta?.label ?? "1") : "1";
+        const valueKey = value ? getValueKey(kind, filter, value, valueMeta?.label ?? "1") : "1";
         const on = selectedValues.includes(valueKey);
 
         return (
@@ -904,7 +999,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
         if (loading || page === currentPage || page < 1 || page > totalPages) return;
 
         forceScrollToTop(topAnchorRef.current);
-        void loadProducts(page);
+        replaceListingUrl({page});
     };
 
     return (
@@ -935,7 +1030,11 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                 type="button"
                                 aria-label="Закрыть фильтры"
                                 className="category-products__sidebar-backdrop"
-                                onClick={() => setMobilePanel(null)}
+                                onClick={() => {
+                                    setSelectedFilters(urlFilters);
+                                    hideApplyButton();
+                                    setMobilePanel(null);
+                                }}
                             />
                         )}
 
@@ -946,7 +1045,11 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                     <button
                                         type="button"
                                         className="category-products__filters-mobile-cancel"
-                                        onClick={() => setMobilePanel(null)}
+                                        onClick={() => {
+                                            setSelectedFilters(urlFilters);
+                                            hideApplyButton();
+                                            setMobilePanel(null);
+                                        }}
                                     >
                                         Отмена
                                     </button>
@@ -1061,7 +1164,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
 
                             {isMobileViewport && (
                                 <footer className="category-products__filters-mobile-footer">
-                                    <button type="button" onClick={() => setMobilePanel(null)}>
+                                    <button type="button" onClick={() => applySelectedFilters()}>
                                         Готово
                                     </button>
                                 </footer>
@@ -1095,7 +1198,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
 
                                             <div className="category-products__sort-dropdown" role="menu" aria-label="Варианты сортировки">
                                                 {sortOptions.map((option) => {
-                                                    const isActive = option.key === sortActive;
+                                                    const isActive = option.key === uiSort;
                                                     return (
                                                         <button
                                                             key={option.key}
@@ -1106,12 +1209,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                                             disabled={loading || isActive}
                                                             onClick={() => {
                                                                 if (isActive) return;
-                                                                sortRef.current = option.key;
-                                                                setSortActive(option.key);
-                                                                setPageError(false);
-                                                                sortMenuRef.current?.removeAttribute("open");
-                                                                forceScrollToTop(topAnchorRef.current);
-                                                                void loadProducts(1);
+                                                                applySort(option.key);
                                                             }}
                                                         >
                                                             {option.label}
@@ -1132,7 +1230,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
 
                                     <div className="category-products__sort-dropdown" role="menu" aria-label="Варианты сортировки">
                                         {sortOptions.map((option) => {
-                                            const isActive = option.key === sortActive;
+                                            const isActive = option.key === uiSort;
                                             return (
                                                 <button
                                                     key={option.key}
@@ -1143,12 +1241,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                                                     disabled={loading || isActive}
                                                     onClick={() => {
                                                         if (isActive) return;
-                                                        sortRef.current = option.key;
-                                                        setSortActive(option.key);
-                                                        setPageError(false);
-                                                        sortMenuRef.current?.removeAttribute("open");
-                                                        forceScrollToTop(topAnchorRef.current);
-                                                        void loadProducts(1);
+                                                        applySort(option.key);
                                                     }}
                                                 >
                                                     {option.label}
@@ -1256,7 +1349,7 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
                     className="category-products__apply"
                     style={{top: applyAnchor.top, left: applyAnchor.left}}
                     aria-label="Применить"
-                    onClick={hideApplyButton}
+                    onClick={() => applySelectedFilters()}
                 >
                     OK
                 </button>
