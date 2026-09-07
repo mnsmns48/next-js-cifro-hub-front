@@ -7,6 +7,7 @@ import {SearchOutlined} from "@ant-design/icons";
 import ProductCard, {type ShortSpec} from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
+import CatalogBreadcrumbs from "@/components/catalog/CatalogBreadcrumbs";
 
 import "../css/ProductGrid.css";
 import "../css/CategoryProducts.css";
@@ -25,6 +26,7 @@ interface Breadcrumb {
     id: number;
     label: string;
     slug?: string | null;
+    parent_id?: number | null;
 }
 
 interface CategoryProductsRenderingProps {
@@ -68,21 +70,6 @@ function getPageSizeForViewport(): number {
     }
 
     return window.matchMedia(MOBILE_MEDIA_QUERY).matches ? MOBILE_LIMIT : DESKTOP_LIMIT;
-}
-
-function toCatalogHref(slug?: string | null): string {
-    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return "/catalog";
-
-    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
-    return `/catalog/${segments.join("/")}`;
-}
-
-function slugSegment(slug?: string | null): string | null {
-    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return null;
-    const parts = normalized.split("/").filter(Boolean);
-    return parts.at(-1) ?? null;
 }
 
 function buildPageItems(
@@ -925,32 +912,15 @@ export default function CategoryProductsRendering({categoryPath}: CategoryProduc
             <div ref={topAnchorRef}/>
 
             {breadcrumbs.length > 0 && (
-                <nav className="category-products__breadcrumbs" aria-label="Навигация">
-                    {(() => {
-                        const chain: string[] = [];
-
-                        return breadcrumbs.map((item, index) => {
-                            const segment = slugSegment(item.slug);
-                            if (segment) {
-                                chain.push(segment);
-                            }
-
-                            const href = chain.length > 0 ? toCatalogHref(chain.join("/")) : "/catalog";
-                            const hasSlug = Boolean(segment);
-
-                            return (
-                                <span key={`${item.id}-${item.label}`}>
-                                    {index > 0 ? <span className="category-products__sep">›</span> : null}
-                                    {hasSlug ? (
-                                        <Link href={href}>{item.label}</Link>
-                                    ) : (
-                                        <span>{item.label}</span>
-                                    )}
-                                </span>
-                            );
-                        });
-                    })()}
-                </nav>
+                <CatalogBreadcrumbs
+                    currentLast
+                    items={breadcrumbs.map((item) => ({
+                        key: `${item.id}-${item.label}`,
+                        label: item.label,
+                        slug: item.slug,
+                        parent_id: item.parent_id,
+                    }))}
+                />
             )}
 
             <div className={`category-products__layout${hasVisualFilters && !pathError && !error ? "" : " category-products__layout--no-filters"}`}>

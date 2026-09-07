@@ -1,30 +1,14 @@
 "use client";
 
-import {useEffect, useState} from "react";
 import Link from "next/link";
 import {Card, Spin} from "antd";
+
+import {toCatalogLevelHref} from "./catalogHref";
+import {catalogSidebarLevels, useCatalogLevels} from "./useCatalogLevels";
 
 import "../css/CardsCatalogMenu.css";
 
 const PLACEHOLDER = "/images/placeholder.svg";
-
-function toCatalogHref(slug?: string | null): string {
-    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return "/catalog";
-
-    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
-    return `/catalog/${segments.join("/")}`;
-}
-
-interface HubLevel {
-    id: number;
-    sort_order: number;
-    label: string;
-    icon: string | null;
-    slug?: string | null;
-    parent_id: number;
-    depth: number;
-}
 
 function CategoryIcon({src, alt, className}: {src?: string | null; alt: string; className: string}) {
     return (
@@ -43,19 +27,7 @@ function CategoryIcon({src, alt, className}: {src?: string | null; alt: string; 
 }
 
 export default function CardsCatalogMenu() {
-    const [levels, setLevels] = useState<HubLevel[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`)
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    setLevels(data);
-                }
-            })
-            .finally(() => setLoading(false));
-    }, []);
+    const {levels, loading} = useCatalogLevels();
 
     if (loading) {
         return (
@@ -65,23 +37,22 @@ export default function CardsCatalogMenu() {
         );
     }
 
-    const depth0 = levels
-        .filter((l) => l.depth === 0)
-        .sort((a, b) => a.sort_order - b.sort_order);
+    const levelsById = new Map(levels.map((level) => [level.id, level]));
+    const cards = catalogSidebarLevels(levels);
 
     return (
         <div className="cards-container">
-            {depth0.map((d0) => (
+            {cards.map((card) => (
                 <Link
-                    key={d0.id}
-                    href={toCatalogHref(d0.slug)}
+                    key={card.id}
+                    href={toCatalogLevelHref(card, levelsById)}
                     className="card-item"
                 >
                     <Card hoverable className="card-catalog">
                         <div className="card-icon-wrap">
-                            <CategoryIcon src={d0.icon} alt={d0.label} className="card-image"/>
+                            <CategoryIcon src={card.icon} alt={card.label} className="card-image"/>
                         </div>
-                        <div className="card-title">{d0.label}</div>
+                        <div className="card-title">{card.label}</div>
                     </Card>
                 </Link>
             ))}

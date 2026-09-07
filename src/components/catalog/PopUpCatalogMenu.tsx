@@ -1,96 +1,26 @@
 "use client";
 
-import {Dispatch, SetStateAction, useEffect, useMemo, useState} from "react";
+import {Dispatch, SetStateAction, useMemo, useState} from "react";
 import {useRouter} from "next/navigation";
 import {Spin} from "antd";
 
-import "../css/PopUpCatalogMenu.css";
+import {toCatalogLevelHref} from "./catalogHref";
+import {catalogChildren, catalogSidebarLevels, useCatalogLevels, type HubLevel} from "./useCatalogLevels";
 
-interface HubLevel {
-    id: number;
-    sort_order: number;
-    label: string;
-    icon: string | null;
-    slug?: string | null;
-    parent_id: number;
-    depth: number;
-}
+import "../css/PopUpCatalogMenu.css";
 
 interface PopUpCatalogMenuProps {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function toCatalogHref(slug?: string | null): string {
-    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return "/catalog";
-
-    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
-    return `/catalog/${segments.join("/")}`;
-}
-
-function slugSegment(slug?: string | null): string | null {
-    const normalized = slug?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return null;
-    const parts = normalized.split("/").filter(Boolean);
-    return parts.at(-1) ?? null;
-}
-
-function buildLevelPath(level: HubLevel, levelsById: Map<number, HubLevel>): string | null {
-    const segments: string[] = [];
-    const visited = new Set<number>();
-    let current: HubLevel | undefined = level;
-
-    while (current && !visited.has(current.id)) {
-        visited.add(current.id);
-        const segment = slugSegment(current.slug);
-        if (segment) {
-            segments.unshift(segment);
-        }
-
-        current = levelsById.get(current.parent_id);
-    }
-
-    return segments.length > 0 ? segments.join("/") : null;
-}
-
 export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
     const router = useRouter();
-    const [levels, setLevels] = useState<HubLevel[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {levels, loading} = useCatalogLevels();
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
-    useEffect(() => {
-        async function loadLevels() {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api3/init_levels`);
-                if (!res.ok) {
-                    return;
-                }
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setLevels(data);
-                }
-            } catch {
-                // Keep previous levels if backend temporarily fails.
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        void loadLevels();
-    }, []);
-
-    const depth0 = useMemo(
-        () => levels.filter((l) => l.depth === 0).sort((a, b) => a.sort_order - b.sort_order),
-        [levels],
-    );
-    const depth1 = useMemo(
-        () => levels.filter((l) => l.depth === 1).sort((a, b) => a.sort_order - b.sort_order),
-        [levels],
-    );
-    const depth2 = useMemo(
-        () => levels.filter((l) => l.depth === 2).sort((a, b) => a.sort_order - b.sort_order),
+    const sidebarItems = useMemo(
+        () => catalogSidebarLevels(levels),
         [levels],
     );
     const levelsById = useMemo(
@@ -99,21 +29,20 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
     );
 
     const resolvedActiveCategoryId = useMemo(() => {
-        if (activeCategoryId !== null && depth0.some((item) => item.id === activeCategoryId)) {
+        if (activeCategoryId !== null && sidebarItems.some((item) => item.id === activeCategoryId)) {
             return activeCategoryId;
         }
-        return depth0[0]?.id ?? null;
-    }, [activeCategoryId, depth0]);
+        return sidebarItems[0]?.id ?? null;
+    }, [activeCategoryId, sidebarItems]);
 
     const activeGroups = useMemo(() => {
         if (resolvedActiveCategoryId === null) return [];
-        return depth1.filter((item) => item.parent_id === resolvedActiveCategoryId);
-    }, [resolvedActiveCategoryId, depth1]);
+        return catalogChildren(levels, resolvedActiveCategoryId);
+    }, [resolvedActiveCategoryId, levels]);
 
     const navigateToMenu = (level: HubLevel) => {
         setOpen(false);
-        const fullPath = buildLevelPath(level, levelsById);
-        router.push(toCatalogHref(fullPath));
+        router.push(toCatalogLevelHref(level, levelsById));
     };
 
     if (!open) return null;
@@ -133,7 +62,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                 ) : (
                     <div className="mega-menu">
                         <aside className="mega-menu__sidebar">
-                            {depth0.map((category) => (
+                            {sidebarItems.map((category) => (
                                 <button
                                     key={category.id}
                                     type="button"
@@ -159,7 +88,7 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                             ) : (
                                 <div className="mega-menu__groups">
                                     {activeGroups.map((group) => {
-                                        const items = depth2.filter((item) => item.parent_id === group.id);
+                                        const items = catalogChildren(levels, group.id);
 
                                         return (
                                             <section key={group.id} className="mega-menu__group">

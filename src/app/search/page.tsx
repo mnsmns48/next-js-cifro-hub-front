@@ -1,12 +1,6 @@
 import {redirect} from "next/navigation";
 
-function toCatalogHref(path?: string | null): string {
-    const normalized = path?.trim().replace(/^\/+|\/+$/g, "");
-    if (!normalized) return "/catalog";
-
-    const segments = normalized.split("/").filter(Boolean).map(encodeURIComponent);
-    return `/catalog/${segments.join("/")}`;
-}
+import {toCatalogHref} from "@/components/catalog/catalogHref";
 
 export default async function SearchPage({
     searchParams,

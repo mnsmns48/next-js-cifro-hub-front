@@ -20,22 +20,6 @@
     font-weight: 600;
 }
 
-.product-detail__nav {
-    margin: 0 0 10px;
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    line-height: 1.4;
-}
-
-.product-detail__nav-sep {
-    margin: 0 6px;
-    color: #c0c8ce;
-}
-
-.product-detail__nav a:hover {
-    color: var(--color-text);
-}
-
 .product-detail__title {
     margin: 0 0 10px;
     font-size: 28px;
@@ -821,7 +805,7 @@
         padding-left: 0;
     }
 
-    .product-detail__nav,
+    .product-detail .catalog-breadcrumbs,
     .product-detail__title,
     .product-detail__meta {
         margin-right: 8px;

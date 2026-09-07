@@ -1,0 +1,27 @@
+.catalog-breadcrumbs {
+    margin: 0 0 12px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.catalog-breadcrumbs a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.catalog-breadcrumbs a:hover {
+    color: var(--color-text);
+}
+
+.catalog-breadcrumbs__sep {
+    margin: 0 6px;
+    color: #c0c8ce;
+}
+
+@media (max-width: 768px) {
+    .catalog-breadcrumbs {
+        margin-bottom: 8px;
+        font-size: 12px;
+    }
+}
