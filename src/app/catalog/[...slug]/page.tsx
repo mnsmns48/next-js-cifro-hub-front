@@ -15,7 +15,7 @@ export default async function CatalogSlugPage({
 
     return (
         <Suspense>
-            <CategoryProductsRendering categoryPath={categoryPath} />
+            <CategoryProductsRendering key={categoryPath} categoryPath={categoryPath} />
         </Suspense>
     );
 }
