@@ -7,8 +7,9 @@ import ProductCard from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 import CatalogBreadcrumbs from "@/components/catalog/CatalogBreadcrumbs";
-import {applyListingToCategoryParams, parsePageParam} from "@/components/catalog/catalogListingSearch";
+import {applyListingToCategoryParams, parsePageParam, readFilterParams} from "@/components/catalog/catalogListingSearch";
 
+import CategoryAppliedFilterChips from "./CategoryAppliedFilterChips";
 import CategoryFilters from "./CategoryFilters";
 import CategoryPagination from "./CategoryPagination";
 import CategorySortMenu from "./CategorySortMenu";
@@ -19,6 +20,7 @@ import {
     PAGE_SIZE,
     PRIORITY_CARD_COUNT,
     SKELETON_COUNT,
+    buildAppliedFilterChips,
     buildVisualFilters,
     isAbortError,
     normalizePath,
@@ -41,6 +43,7 @@ import "../css/CategoryProducts.css";
 export default function CategoryProductsRendering({categoryPath}: {categoryPath: string}) {
     const {
         listingSearch,
+        listingSearchRef,
         replaceListingUrl,
         urlFilters,
         urlSort,
@@ -87,6 +90,10 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
         [metaFilters, skuFilters, modelFilters],
     );
     const hasVisualFilters = visualFilters.length > 0;
+    const appliedFilterChips = useMemo(
+        () => buildAppliedFilterChips(visualFilters, urlFilters),
+        [urlFilters, visualFilters],
+    );
     const uiSort = urlSort || sortActive;
     const activeSortLabel = sortOptions.find((option) => option.key === uiSort)?.label ?? "Сортировка";
     const isInitialLoad = loading && products.length === 0;
@@ -171,7 +178,7 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
     }, [products.length]);
 
     useEffect(() => {
-        // Fetch listing when path or query changes; state updates after the response.
+        // Загрузка листинга при смене категории или query в адресе.
         // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch category listing
         void loadProducts();
     }, [loadProducts]);
@@ -189,26 +196,50 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
         return () => clearInterval(id);
     }, [error, loadProducts]);
 
-    const applySelectedFilters = () => {
-        replaceListingUrl({filters: selectedFilters, page: 1});
+    // Раньше: с пустой выдачи фильтр применялся сразу, без кнопки OK.
+    // const isEmptyListing = !loading && products.length === 0;
+
+    const commitFilters = (filters: Record<string, string[]>) => {
+        replaceListingUrl({filters, page: 1});
         setPageError(false);
-        setMobilePanel(null);
         scrollListingToTop(topAnchorRef.current);
     };
 
+    const applySelectedFilters = () => {
+        commitFilters(selectedFilters);
+        setMobilePanel(null);
+    };
+
+    const currentFilters = () => draftFilters ?? readFilterParams(new URLSearchParams(listingSearchRef.current));
+
     const toggleFilterValue = (filterKey: string, valueKey: string, checked: boolean) => {
-        setDraftFilters((prev) => toggleSelectedFilter(prev ?? urlFilters, filterKey, valueKey, checked));
+        const next = toggleSelectedFilter(currentFilters(), filterKey, valueKey, checked);
+        if (isMobileViewport) {
+            setDraftFilters(next);
+            return;
+        }
+        commitFilters(next);
     };
 
     const selectSingleFilterValue = (filterKey: string, valueKey: string | null) => {
-        setDraftFilters((prev) => setSelectedFilterValue(prev ?? urlFilters, filterKey, valueKey));
+        const next = setSelectedFilterValue(currentFilters(), filterKey, valueKey);
+        if (isMobileViewport) {
+            setDraftFilters(next);
+            return;
+        }
+        commitFilters(next);
     };
 
     const clearAllSelectedFilters = () => {
-        setDraftFilters({});
-        setPageError(false);
-        scrollListingToTop(topAnchorRef.current);
-        replaceListingUrl({filters: {}, page: 1});
+        if (isMobileViewport) {
+            setDraftFilters({});
+            return;
+        }
+        commitFilters({});
+    };
+
+    const removeAppliedFilterValue = (filterKey: string, valueKey: string) => {
+        commitFilters(toggleSelectedFilter(urlFilters, filterKey, valueKey, false));
     };
 
     const applySort = (sort: string) => {
@@ -255,8 +286,12 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                 )}
 
                 <section className="category-products__main">
-                    {!pathError && !error && (sortOptions.length > 0 || (hasVisualFilters && isMobileViewport)) && (
-                        <section className="category-products__toolbar" aria-label="Сортировка">
+                    {!pathError && !error && (
+                        sortOptions.length > 0
+                        || appliedFilterChips.length > 0
+                        || (hasVisualFilters && isMobileViewport)
+                    ) && (
+                        <section className="category-products__toolbar" aria-label="Сортировка и фильтры">
                             {isMobileViewport ? (
                                 <div className="category-products__mobile-actions">
                                     {hasVisualFilters && (
@@ -291,6 +326,10 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                                     onSelect={applySort}
                                 />
                             ) : null}
+                            <CategoryAppliedFilterChips
+                                chips={appliedFilterChips}
+                                onRemove={removeAppliedFilterValue}
+                            />
                         </section>
                     )}
 
@@ -302,7 +341,13 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                         </section>
                     ) : error ? (
                         <ServerError/>
-                    ) : (
+                    ) : isInitialLoad ? (
+                        <div className="product-grid">
+                            {Array.from({length: SKELETON_COUNT}).map((_, i) => (
+                                <ProductCardSkeleton key={`category-skeleton-${i}`}/>
+                            ))}
+                        </div>
+                    ) : products.length > 0 ? (
                         <>
                             {pageError && (
                                 <p className="category-products__page-error">
@@ -323,13 +368,21 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                                         priority={index < PRIORITY_CARD_COUNT}
                                     />
                                 ))}
-
-                                {isInitialLoad &&
-                                    Array.from({length: SKELETON_COUNT}).map((_, i) => (
-                                        <ProductCardSkeleton key={`category-skeleton-${i}`}/>
-                                    ))}
                             </div>
                         </>
+                    ) : (
+                        <section className="category-products__empty">
+                            <h2>Товары не найдены</h2>
+                            <p>Такой страницы нет или под выбранные условия ничего не попало.</p>
+                            {urlPage > 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => commitFilters(selectedFilters)}
+                                >
+                                    На первую страницу
+                                </button>
+                            )}
+                        </section>
                     )}
 
                     {!error && !pathError && (
@@ -338,6 +391,7 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                             totalPages={totalPages}
                             compact={isCompactPagination}
                             loading={loading}
+                            hasItems={products.length > 0}
                             onPageChange={handlePageChange}
                         />
                     )}

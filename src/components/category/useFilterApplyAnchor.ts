@@ -4,6 +4,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 
 import {MOBILE_MEDIA_QUERY} from "./categoryListing";
 
+// Позиция плавающей кнопки OK у фильтров. Сейчас кнопка закомментирована в CategoryFilters.
 export function useFilterApplyAnchor(isMobileViewport: boolean) {
     const [applyAnchor, setApplyAnchor] = useState<{top: number; left: number} | null>(null);
     const applyButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -11,11 +12,13 @@ export function useFilterApplyAnchor(isMobileViewport: boolean) {
     const sidebarRef = useRef<HTMLElement | null>(null);
     const filtersGridRef = useRef<HTMLDivElement | null>(null);
 
+    // Скрыть плавающую кнопку OK.
     const hideApplyButton = useCallback(() => {
         applyAnchorElRef.current = null;
         setApplyAnchor(null);
     }, []);
 
+    // Держит OK у правого края строки фильтра, пока строка видна в сайдбаре.
     const syncApplyButtonPosition = useCallback(() => {
         const row = applyAnchorElRef.current;
         const sidebar = sidebarRef.current;
@@ -39,6 +42,7 @@ export function useFilterApplyAnchor(isMobileViewport: boolean) {
         });
     }, [hideApplyButton]);
 
+    // Показать OK у чекбокса / чипа / тумблера.
     const revealApplyButton = useCallback((target: EventTarget | null) => {
         if (typeof window !== "undefined" && window.matchMedia(MOBILE_MEDIA_QUERY).matches) {
             hideApplyButton();

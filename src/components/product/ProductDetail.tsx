@@ -432,6 +432,7 @@ export default function ProductDetail({origin}: {origin: string}) {
                                         src={currentUrl}
                                         alt={product.title}
                                         fill
+                                        unoptimized
                                         sizes="(min-width: 1100px) 420px, 100vw"
                                         className="product-detail__photo"
                                         onError={() => setUseNativeImg(true)}

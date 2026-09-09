@@ -17,7 +17,6 @@ import {
     isBooleanFilter,
     isBrandFilter,
     isColorFilter,
-    isDeviceModelFilter,
     isPriceFilter,
     valueMatchesQuery,
     type ApiFilter,
@@ -27,6 +26,9 @@ import {
 } from "./categoryListing";
 import {useFilterApplyAnchor} from "./useFilterApplyAnchor";
 
+// Плавающая кнопка OK на десктопе закомментирована ниже.
+// Чтобы вернуть её: раскомментировать applyAnchor / applyButtonRef / revealApplyButton,
+// саму кнопку, клик снаружи и вызовы revealApplyButton у значений фильтра.
 export default function CategoryFilters({
     visualFilters,
     selectedFilters,
@@ -50,53 +52,54 @@ export default function CategoryFilters({
 }) {
     const [expandedFilters, setExpandedFilters] = useState<Record<string, boolean>>({});
     const [filterQueries, setFilterQueries] = useState<Record<string, string>>({});
-    const [modelResetInView, setModelResetInView] = useState(true);
-    const modelResetRef = useRef<HTMLButtonElement | null>(null);
+    const [resetInView, setResetInView] = useState(true);
+    const resetButtonRef = useRef<HTMLButtonElement | null>(null);
     const {
-        applyAnchor,
-        applyButtonRef,
+        // Для кнопки OK:
+        // applyAnchor,
+        // applyButtonRef,
         sidebarRef,
         filtersGridRef,
         hideApplyButton,
-        revealApplyButton,
+        // revealApplyButton,
     } = useFilterApplyAnchor(isMobileViewport);
 
     const anySelected = hasSelectedFilters(selectedFilters);
-    const hasModelFilter = visualFilters.some((entry) => isDeviceModelFilter(entry.filter));
-    const showResetDock = anySelected && !isMobileViewport && (!hasModelFilter || !modelResetInView);
+    const showResetDock = anySelected && !isMobileViewport && !resetInView;
 
     useEffect(() => {
-        if (!anySelected || isMobileViewport || !hasModelFilter) return;
+        if (!anySelected || isMobileViewport) return;
 
-        const target = modelResetRef.current;
+        const target = resetButtonRef.current;
         const root = filtersGridRef.current;
         if (!root || !target) return;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                setModelResetInView(Boolean(entry?.isIntersecting));
+                setResetInView(Boolean(entry?.isIntersecting));
             },
             {root, threshold: 0},
         );
         observer.observe(target);
         return () => observer.disconnect();
-    }, [anySelected, filtersGridRef, hasModelFilter, isMobileViewport, visualFilters.length]);
+    }, [anySelected, filtersGridRef, isMobileViewport, visualFilters.length]);
 
-    useEffect(() => {
-        if (!applyAnchor) return;
-
-        const onPointerDown = (event: PointerEvent) => {
-            const target = event.target;
-            if (!(target instanceof Node)) return;
-            if (applyButtonRef.current?.contains(target)) return;
-            if (target instanceof Element && target.closest(".category-products__filters")) return;
-            onDiscardDraft();
-            hideApplyButton();
-        };
-
-        document.addEventListener("pointerdown", onPointerDown);
-        return () => document.removeEventListener("pointerdown", onPointerDown);
-    }, [applyAnchor, applyButtonRef, hideApplyButton, onDiscardDraft]);
+    // Кнопка OK: клик вне фильтров сбрасывает неподтверждённый черновик.
+    // useEffect(() => {
+    //     if (!applyAnchor) return;
+    //
+    //     const onPointerDown = (event: PointerEvent) => {
+    //         const target = event.target;
+    //         if (!(target instanceof Node)) return;
+    //         if (applyButtonRef.current?.contains(target)) return;
+    //         if (target instanceof Element && target.closest(".category-products__filters")) return;
+    //         onDiscardDraft();
+    //         hideApplyButton();
+    //     };
+    //
+    //     document.addEventListener("pointerdown", onPointerDown);
+    //     return () => document.removeEventListener("pointerdown", onPointerDown);
+    // }, [applyAnchor, applyButtonRef, hideApplyButton, onDiscardDraft]);
 
     const discardMobile = () => {
         onDiscardDraft();
@@ -134,7 +137,7 @@ export default function CategoryFilters({
                     )}
 
                     <div ref={filtersGridRef} className="category-products__filters-grid">
-                        {visualFilters.map((entry) => (
+                        {visualFilters.map((entry, index) => (
                             <FilterGroup
                                 key={filterExpandKey(entry.kind, entry.filter.key)}
                                 entry={entry}
@@ -142,8 +145,8 @@ export default function CategoryFilters({
                                 expanded={Boolean(expandedFilters[filterExpandKey(entry.kind, entry.filter.key)])}
                                 query={filterQueries[filterExpandKey(entry.kind, entry.filter.key)] ?? ""}
                                 isMobileViewport={isMobileViewport}
-                                anySelected={anySelected}
-                                modelResetRef={modelResetRef}
+                                showReset={anySelected && index === 0}
+                                resetButtonRef={resetButtonRef}
                                 onQueryChange={(expandKey, nextValue) => {
                                     setFilterQueries((prev) => ({
                                         ...prev,
@@ -164,7 +167,7 @@ export default function CategoryFilters({
                                     hideApplyButton();
                                     onClearAll();
                                 }}
-                                revealApplyButton={revealApplyButton}
+                                // Для кнопки OK: revealApplyButton={revealApplyButton}
                             />
                         ))}
                     </div>
@@ -194,6 +197,7 @@ export default function CategoryFilters({
                 </section>
             </aside>
 
+            {/* Кнопка OK: подтверждение рядом со строкой, которую изменили.
             {applyAnchor && !isMobileViewport ? (
                 <button
                     ref={applyButtonRef}
@@ -209,6 +213,7 @@ export default function CategoryFilters({
                     OK
                 </button>
             ) : null}
+            */}
         </>
     );
 }
@@ -219,28 +224,28 @@ function FilterGroup({
     expanded,
     query,
     isMobileViewport,
-    anySelected,
-    modelResetRef,
+    showReset,
+    resetButtonRef,
     onQueryChange,
     onToggleExpanded,
     onToggleValue,
     onSelectSingle,
     onClearAll,
-    revealApplyButton,
+    // Для кнопки OK: revealApplyButton,
 }: {
     entry: VisualFilter;
     selectedValues: string[];
     expanded: boolean;
     query: string;
     isMobileViewport: boolean;
-    anySelected: boolean;
-    modelResetRef: RefObject<HTMLButtonElement | null>;
+    showReset: boolean;
+    resetButtonRef: RefObject<HTMLButtonElement | null>;
     onQueryChange: (expandKey: string, value: string) => void;
     onToggleExpanded: (expandKey: string) => void;
     onToggleValue: (filterKey: string, valueKey: string, checked: boolean) => void;
     onSelectSingle: (filterKey: string, valueKey: string | null) => void;
     onClearAll: () => void;
-    revealApplyButton: (target: EventTarget | null) => void;
+    // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const {kind, filter, values} = entry;
     const isPrice = isPriceFilter(filter);
@@ -253,7 +258,6 @@ function FilterGroup({
         ? values.filter((value) => valueMatchesQuery(filter, value, query))
         : values;
     const showSearch = kind !== "model" && !isPrice && !isBoolean;
-    const showModelReset = isDeviceModelFilter(filter) && anySelected;
     const useChipList = isMobileViewport && !isColor;
     const listPreviewCount = useChipList
         ? (isBrand ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW)
@@ -270,8 +274,11 @@ function FilterGroup({
                     filter={filter}
                     values={values}
                     selectedValues={selectedValues}
+                    showReset={showReset}
+                    resetButtonRef={resetButtonRef}
                     onToggleValue={onToggleValue}
-                    revealApplyButton={revealApplyButton}
+                    onClearAll={onClearAll}
+                    // Для кнопки OK: revealApplyButton={revealApplyButton}
                 />
             </section>
         );
@@ -281,11 +288,11 @@ function FilterGroup({
         <section className="category-products__filter-group">
             <div className="category-products__filter-head">
                 <h4>{filter.label}</h4>
-                {(showModelReset || (useChipList && canExpand)) && (
+                {(showReset || (useChipList && canExpand)) && (
                     <div className="category-products__filter-head-actions">
-                        {showModelReset && (
+                        {showReset && (
                             <button
-                                ref={modelResetRef}
+                                ref={resetButtonRef}
                                 type="button"
                                 className="category-products__filter-reset"
                                 onClick={onClearAll}
@@ -329,7 +336,7 @@ function FilterGroup({
                         selectedValues={selectedValues}
                         placeholders={getPricePlaceholders(values)}
                         onSelectSingle={onSelectSingle}
-                        revealApplyButton={revealApplyButton}
+                        // Для кнопки OK: revealApplyButton={revealApplyButton}
                     />
                 )
                 : hasQuery && matchedValues.length === 0
@@ -344,7 +351,7 @@ function FilterGroup({
                                 expanded={expanded}
                                 showAll={hasQuery}
                                 onToggleValue={onToggleValue}
-                                revealApplyButton={revealApplyButton}
+                                // Для кнопки OK: revealApplyButton={revealApplyButton}
                             />
                         )
                         : (
@@ -357,7 +364,7 @@ function FilterGroup({
                                 showAll={hasQuery}
                                 onToggleExpanded={() => onToggleExpanded(expandKey)}
                                 onToggleValue={onToggleValue}
-                                revealApplyButton={revealApplyButton}
+                                // Для кнопки OK: revealApplyButton={revealApplyButton}
                             />
                         )}
         </section>
@@ -372,7 +379,7 @@ function ChipList({
     expanded,
     showAll,
     onToggleValue,
-    revealApplyButton,
+    // Для кнопки OK: revealApplyButton,
 }: {
     kind: FilterKind;
     filter: ApiFilter;
@@ -381,7 +388,7 @@ function ChipList({
     expanded: boolean;
     showAll: boolean;
     onToggleValue: (filterKey: string, valueKey: string, checked: boolean) => void;
-    revealApplyButton: (target: EventTarget | null) => void;
+    // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const previewCount = isBrandFilter(filter) ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW;
     const visibleValues = showAll || expanded ? values : values.slice(0, previewCount);
@@ -406,9 +413,9 @@ function ChipList({
                         type="button"
                         aria-pressed={pressed}
                         className={`category-products__chip${pressed ? " category-products__chip--active" : ""}`}
-                        onClick={(event) => {
+                        onClick={() => {
                             onToggleValue(filter.key, valueKey, !pressed);
-                            revealApplyButton(event.currentTarget);
+                            // Для кнопки OK: revealApplyButton(event.currentTarget);
                         }}
                     >
                         {displayLabel}
@@ -428,7 +435,7 @@ function CheckList({
     showAll,
     onToggleExpanded,
     onToggleValue,
-    revealApplyButton,
+    // Для кнопки OK: revealApplyButton,
 }: {
     kind: FilterKind;
     filter: ApiFilter;
@@ -438,7 +445,7 @@ function CheckList({
     showAll: boolean;
     onToggleExpanded: () => void;
     onToggleValue: (filterKey: string, valueKey: string, checked: boolean) => void;
-    revealApplyButton: (target: EventTarget | null) => void;
+    // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const visibleValues = showAll || expanded ? values : values.slice(0, FILTER_LIST_PREVIEW);
     const canExpand = !showAll && values.length > FILTER_LIST_PREVIEW;
@@ -461,7 +468,7 @@ function CheckList({
                                 checked={checked}
                                 onChange={(event) => {
                                     onToggleValue(filter.key, valueKey, event.target.checked);
-                                    revealApplyButton(event.currentTarget);
+                                    // Для кнопки OK: revealApplyButton(event.currentTarget);
                                 }}
                             />
                             <span>{displayLabel}</span>
@@ -485,7 +492,7 @@ function PriceFilter({
     selectedValues,
     placeholders,
     onSelectSingle,
-    revealApplyButton,
+    // Для кнопки OK: revealApplyButton,
 }: {
     kind: FilterKind;
     filter: ApiFilter;
@@ -493,7 +500,7 @@ function PriceFilter({
     selectedValues: string[];
     placeholders: {from: string; to: string};
     onSelectSingle: (filterKey: string, valueKey: string | null) => void;
-    revealApplyButton: (target: EventTarget | null) => void;
+    // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const radioName = `filter-price-${kind}-${filter.key}`;
 
@@ -517,9 +524,9 @@ function PriceFilter({
                                 type="radio"
                                 name={radioName}
                                 checked={checked}
-                                onChange={(event) => {
+                                onChange={() => {
                                     onSelectSingle(filter.key, valueKey);
-                                    revealApplyButton(event.currentTarget);
+                                    // Для кнопки OK: revealApplyButton(event.currentTarget);
                                 }}
                             />
                             <span>{valueMeta.label}</span>
@@ -531,9 +538,9 @@ function PriceFilter({
                         type="radio"
                         name={radioName}
                         checked={selectedValues.length === 0}
-                        onChange={(event) => {
+                        onChange={() => {
                             onSelectSingle(filter.key, null);
-                            revealApplyButton(event.currentTarget);
+                            // Для кнопки OK: revealApplyButton(event.currentTarget);
                         }}
                     />
                     <span>Неважно</span>
@@ -548,15 +555,21 @@ function BooleanFilter({
     filter,
     values,
     selectedValues,
+    showReset,
+    resetButtonRef,
     onToggleValue,
-    revealApplyButton,
+    onClearAll,
+    // Для кнопки OK: revealApplyButton,
 }: {
     kind: FilterKind;
     filter: ApiFilter;
     values: FilterValue[];
     selectedValues: string[];
+    showReset: boolean;
+    resetButtonRef: RefObject<HTMLButtonElement | null>;
     onToggleValue: (filterKey: string, valueKey: string, checked: boolean) => void;
-    revealApplyButton: (target: EventTarget | null) => void;
+    onClearAll: () => void;
+    // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const value = values[0];
     const valueMeta = value ? getFilterValueMeta(value) : null;
@@ -566,14 +579,24 @@ function BooleanFilter({
     return (
         <div className="category-products__toggle-row">
             <h4>{filter.label}</h4>
+            {showReset && (
+                <button
+                    ref={resetButtonRef}
+                    type="button"
+                    className="category-products__filter-reset"
+                    onClick={onClearAll}
+                >
+                    Сбросить все
+                </button>
+            )}
             <button
                 type="button"
                 role="switch"
                 aria-checked={on}
                 className={`category-products__toggle${on ? " category-products__toggle--on" : ""}`}
-                onClick={(event) => {
+                onClick={() => {
                     onToggleValue(filter.key, valueKey, !on);
-                    revealApplyButton(event.currentTarget);
+                                    // Для кнопки OK: revealApplyButton(event.currentTarget);
                 }}
             />
         </div>

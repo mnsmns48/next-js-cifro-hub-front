@@ -29,6 +29,40 @@
     color: #1f4bb8;
 }
 
+.category-products__empty {
+    margin: 8px 0 16px;
+    padding: 20px 16px;
+    border-radius: 12px;
+    background: #f5f8fa;
+    color: #001a34;
+}
+
+.category-products__empty h2 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.category-products__empty p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #5b6570;
+}
+
+.category-products__empty button {
+    margin-top: 12px;
+    border: 0;
+    border-radius: 10px;
+    padding: 8px 14px;
+    background: #d9ff00;
+    color: #111;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 .category-products__layout {
     display: grid;
     grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
@@ -374,6 +408,7 @@
 
 .category-products__toggle-row h4 {
     padding: 0;
+    flex: 1 1 auto;
 }
 
 .category-products__toggle {
@@ -440,7 +475,6 @@
 
 .category-products__chip--active {
     background: #ebf968;
-    font-weight: 600;
 }
 
 .category-products__chips--brands {
@@ -460,9 +494,52 @@
 .category-products__toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
     margin: 0 0 12px;
     justify-content: flex-start;
+}
+
+.category-products__applied {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 180px;
+}
+
+.category-products__applied-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 34px;
+    padding: 0 8px 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: #e2fc2a;
+    color: #000;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.category-products__applied-chip:hover {
+    background: #d4ee20;
+}
+
+.category-products__applied-chip-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.category-products__applied-chip-x {
+    font-size: 10px;
+    opacity: 0.72;
+    flex: 0 0 auto;
 }
 
 .category-products__mobile-actions {
@@ -577,6 +654,7 @@
 
 .category-products__sort-menu {
     position: relative;
+    flex: 0 0 auto;
 }
 
 .category-products__sort-menu[open] {
@@ -920,11 +998,22 @@
 
     .category-products__toolbar {
         margin-bottom: 10px;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
 
     .category-products__mobile-actions {
+        flex: 1 1 100%;
         border-radius: 18px;
+    }
+
+    .category-products__applied {
+        flex: 1 1 100%;
+    }
+
+    .category-products__applied-chip {
+        min-height: 32px;
+        font-size: 12px;
+        padding: 0 7px 0 10px;
     }
 
     .category-products__action-btn {

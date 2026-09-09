@@ -299,7 +299,8 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                 <div className="product-card__image-inner">
                     <Image
                         key={`next-${currentUrl}`}
-                        loading="eager"
+                        unoptimized
+                        loading={priority ? "eager" : "lazy"}
                         src={currentUrl}
                         alt={title}
                         fill
@@ -331,12 +332,17 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
         <article
             className={`product-card${specsLeft ? " product-card--specs-left" : ""}${specsOpen ? " product-card--specs-open" : ""}`}
         >
-            <div className="product-card__actions">
+            <div
+                className="product-card__actions"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <button
                     type="button"
                     className={`product-card__action-btn${favorite ? " product-card__action-btn--active" : ""}`}
                     aria-label={favorite ? "Убрать из избранного" : "В избранное"}
                     onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setFavorite((prev) => !prev);
                     }}
@@ -349,6 +355,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                     className={`product-card__action-btn${compare ? " product-card__action-btn--active" : ""}`}
                     aria-label={compare ? "Убрать из сравнения" : "Добавить в сравнение"}
                     onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setCompare((prev) => !prev);
                     }}

@@ -224,10 +224,6 @@ export function isBrandFilter(filter: ApiFilter): boolean {
     return filter.key === "brand";
 }
 
-export function isDeviceModelFilter(filter: ApiFilter): boolean {
-    return filter.key === "model";
-}
-
 function capitalizeFirstLetter(value: string): string {
     if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1);
@@ -289,6 +285,47 @@ export function hasSelectedFilters(selected: Record<string, string[]>): boolean 
     return Object.values(selected).some((values) => values.length > 0);
 }
 
+export interface AppliedFilterChip {
+    id: string;
+    filterKey: string;
+    valueKey: string;
+    label: string;
+}
+
+export function buildAppliedFilterChips(
+    visualFilters: VisualFilter[],
+    selected: Record<string, string[]>,
+): AppliedFilterChip[] {
+    const chips: AppliedFilterChip[] = [];
+
+    for (const entry of visualFilters) {
+        const selectedValues = selected[entry.filter.key] ?? [];
+        if (selectedValues.length === 0) continue;
+
+        const booleanFilter = isBooleanFilter(entry.filter, entry.values);
+
+        for (const valueKey of selectedValues) {
+            let valueLabel = valueKey;
+            for (const value of entry.values) {
+                const valueMeta = getFilterValueMeta(value);
+                if (!valueMeta) continue;
+                if (getValueKey(entry.kind, value, valueMeta.label) !== valueKey) continue;
+                valueLabel = getDisplayLabel(entry.filter, valueMeta.label);
+                break;
+            }
+
+            chips.push({
+                id: `${entry.kind}-${entry.filter.key}-${valueKey}`,
+                filterKey: entry.filter.key,
+                valueKey,
+                label: booleanFilter ? entry.filter.label : valueLabel,
+            });
+        }
+    }
+
+    return chips;
+}
+
 export function toggleSelectedFilter(
     selected: Record<string, string[]>,
     filterKey: string,
@@ -329,13 +366,16 @@ export function parseCategoryListing(data: unknown, fallbackPage: number): Parse
         ? apiSortActive
         : (sortOptions[0]?.key ?? "");
 
+    const products = asArray<Product>(payload.products);
     const apiPage = Number(pagination.page);
     const apiTotalPages = Number(pagination.total_pages);
     const page = Number.isFinite(apiPage) && apiPage > 0 ? apiPage : fallbackPage;
-    const totalPages = Number.isFinite(apiTotalPages) && apiTotalPages > 0 ? apiTotalPages : page;
+    const totalPages = Number.isFinite(apiTotalPages) && apiTotalPages > 0
+        ? apiTotalPages
+        : (products.length > 0 ? 1 : 0);
 
     return {
-        products: asArray<Product>(payload.products),
+        products,
         breadcrumbs: asArray<Breadcrumb>(payload.breadcrumbs),
         metaFilters: asArray<ApiFilter>(filters.meta_filters),
         skuFilters: asArray<ApiFilter>(filters.sku_filters),

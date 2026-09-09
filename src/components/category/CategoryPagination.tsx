@@ -7,15 +7,17 @@ export default function CategoryPagination({
     totalPages,
     compact,
     loading,
+    hasItems,
     onPageChange,
 }: {
     currentPage: number;
     totalPages: number;
     compact: boolean;
     loading: boolean;
+    hasItems: boolean;
     onPageChange: (page: number) => void;
 }) {
-    if (totalPages <= 1) return null;
+    if (!hasItems || totalPages <= 1) return null;
 
     const pageItems = buildPageItems(currentPage, totalPages, compact);
 
