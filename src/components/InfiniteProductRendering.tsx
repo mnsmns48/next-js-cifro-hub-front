@@ -21,6 +21,10 @@ interface InfiniteProductRenderingProps {
     menuLevels?: string;
 }
 
+function isAbortError(error: unknown): boolean {
+    return error instanceof DOMException && error.name === "AbortError";
+}
+
 export default function InfiniteProductRendering({menuLevels = "0"}: InfiniteProductRenderingProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,10 +35,15 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
     const hasMoreRef = useRef(true);
     const cursorRef = useRef<number | null>(null);
     const menuLevelsRef = useRef(menuLevels);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     async function loadProducts(initial = false) {
         if (loadingRef.current) return;
         if (!initial && !hasMoreRef.current) return;
+
+        abortControllerRef.current?.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         loadingRef.current = true;
         setLoading(true);
@@ -50,15 +59,23 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
             }
 
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api3/products?${params.toString()}`
-            ).catch(() => null);
+                `${process.env.NEXT_PUBLIC_API_URL}/api3/products?${params.toString()}`,
+                {signal: controller.signal},
+            ).catch((err: unknown) => {
+                if (isAbortError(err)) return null;
+                throw err;
+            });
 
-            if (!res || !res.ok) {
+            if (controller.signal.aborted || !res) return;
+
+            if (!res.ok) {
                 setError(true);
                 return;
             }
 
             const data = await res.json();
+            if (controller.signal.aborted) return;
+
             const nextProducts: Product[] = Array.isArray(data.products) ? data.products : [];
 
             setProducts((prev) => {
@@ -72,9 +89,14 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
             cursorRef.current = data.next_cursor;
             hasMoreRef.current = Boolean(data.has_more);
             setError(false);
+        } catch (err: unknown) {
+            if (isAbortError(err) || controller.signal.aborted) return;
+            setError(true);
         } finally {
-            loadingRef.current = false;
-            setLoading(false);
+            if (!controller.signal.aborted) {
+                loadingRef.current = false;
+                setLoading(false);
+            }
         }
     }
 
@@ -90,7 +112,10 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
             void loadProducts(true);
         }, 0);
 
-        return () => clearTimeout(id);
+        return () => {
+            clearTimeout(id);
+            abortControllerRef.current?.abort();
+        };
     }, [menuLevels]);
 
     useEffect(() => {

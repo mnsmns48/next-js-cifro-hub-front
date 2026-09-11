@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Link from "next/link";
+import {Empty} from "antd";
 
 import ProductCard from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
@@ -91,8 +92,8 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
     );
     const hasVisualFilters = visualFilters.length > 0;
     const appliedFilterChips = useMemo(
-        () => buildAppliedFilterChips(visualFilters, urlFilters),
-        [urlFilters, visualFilters],
+        () => buildAppliedFilterChips(metaFilters, skuFilters, modelFilters, urlFilters),
+        [metaFilters, modelFilters, skuFilters, urlFilters],
     );
     const uiSort = urlSort || sortActive;
     const activeSortLabel = sortOptions.find((option) => option.key === uiSort)?.label ?? "Сортировка";
@@ -372,16 +373,23 @@ export default function CategoryProductsRendering({categoryPath}: {categoryPath:
                         </>
                     ) : (
                         <section className="category-products__empty">
-                            <h2>Товары не найдены</h2>
-                            <p>Такой страницы нет или под выбранные условия ничего не попало.</p>
-                            {urlPage > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => commitFilters(selectedFilters)}
-                                >
-                                    На первую страницу
-                                </button>
-                            )}
+                            <Empty
+                                image={Empty.PRESENTED_IMAGE_DEFAULT}
+                                styles={{
+                                    image: {height: 180},
+                                    description: {fontSize: 16},
+                                }}
+                                description="Товары не найдены"
+                            >
+                                {urlPage > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => commitFilters(selectedFilters)}
+                                    >
+                                        На первую страницу
+                                    </button>
+                                )}
+                            </Empty>
                         </section>
                     )}
 

@@ -17,7 +17,7 @@ const tabs = [
         href: "/catalog",
         label: "Каталог",
         icon: AppstoreOutlined,
-        match: (path: string) => path === "/catalog" || path.startsWith("/search"),
+        match: (path: string) => path === "/catalog" || path.startsWith("/catalog/") || path.startsWith("/search"),
     },
     {href: "/cart", label: "Корзина", icon: ShoppingCartOutlined, match: (path: string) => path === "/cart"},
     {href: "/login", label: "Войти", icon: UserOutlined, match: (path: string) => path === "/login"},

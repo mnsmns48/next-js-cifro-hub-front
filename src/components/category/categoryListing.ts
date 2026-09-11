@@ -207,10 +207,6 @@ export function getPricePlaceholders(values: FilterValue[]): {from: string; to: 
     };
 }
 
-export function isColorFilter(filter: ApiFilter): boolean {
-    return filter.key === "Color";
-}
-
 export function isPriceFilter(filter: ApiFilter): boolean {
     return filter.key === "price";
 }
@@ -240,6 +236,24 @@ export function getValueKey(kind: FilterKind, value: FilterValue, label: string)
     if (kind === "model") return label;
     if (value.id !== undefined && value.id !== null) return String(value.id);
     return label;
+}
+
+export function uniqueFilterValues(kind: FilterKind, values: FilterValue[]): FilterValue[] {
+    const seen = new Set<string>();
+    const unique: FilterValue[] = [];
+
+    for (const value of values) {
+        const valueMeta = getFilterValueMeta(value);
+        if (!valueMeta) continue;
+
+        const valueKey = getValueKey(kind, value, valueMeta.label);
+        if (!valueKey || seen.has(valueKey)) continue;
+
+        seen.add(valueKey);
+        unique.push(value);
+    }
+
+    return unique;
 }
 
 export function filterExpandKey(kind: FilterKind, filterKey: string): string {
@@ -296,32 +310,49 @@ export interface AppliedFilterChip {
 }
 
 export function buildAppliedFilterChips(
-    visualFilters: VisualFilter[],
+    metaFilters: ApiFilter[],
+    skuFilters: ApiFilter[],
+    modelFilters: ApiFilter[],
     selected: Record<string, string[]>,
 ): AppliedFilterChip[] {
+    const catalog: VisualFilter[] = [
+        ...metaFilters.map((filter) => ({kind: "meta" as const, filter, values: getFilterValues(filter)})),
+        ...skuFilters.map((filter) => ({kind: "sku" as const, filter, values: getFilterValues(filter)})),
+        ...modelFilters.map((filter) => ({kind: "model" as const, filter, values: getFilterValues(filter)})),
+    ];
+
     const chips: AppliedFilterChip[] = [];
 
-    for (const entry of visualFilters) {
-        const selectedValues = selected[entry.filter.key] ?? [];
-        if (selectedValues.length === 0) continue;
+    for (const [filterKey, selectedValues] of Object.entries(selected)) {
+        if (!filterKey || selectedValues.length === 0) continue;
 
-        const booleanFilter = isBooleanFilter(entry.filter, entry.values);
+        const entries = catalog.filter((entry) => entry.filter.key === filterKey);
+        const primary = entries[0];
+        const booleanFilter = primary
+            ? isBooleanFilter(primary.filter, primary.values)
+            : false;
 
         for (const valueKey of selectedValues) {
-            let valueLabel = valueKey;
-            for (const value of entry.values) {
-                const valueMeta = getFilterValueMeta(value);
-                if (!valueMeta) continue;
-                if (getValueKey(entry.kind, value, valueMeta.label) !== valueKey) continue;
-                valueLabel = getDisplayLabel(entry.filter, valueMeta.label);
-                break;
+            const trimmedKey = valueKey.trim();
+            if (!trimmedKey) continue;
+
+            let valueLabel = trimmedKey;
+            lookup:
+            for (const entry of entries) {
+                for (const value of entry.values) {
+                    const valueMeta = getFilterValueMeta(value);
+                    if (!valueMeta) continue;
+                    if (getValueKey(entry.kind, value, valueMeta.label) !== trimmedKey) continue;
+                    valueLabel = getDisplayLabel(entry.filter, valueMeta.label);
+                    break lookup;
+                }
             }
 
             chips.push({
-                id: `${entry.kind}-${entry.filter.key}-${valueKey}`,
-                filterKey: entry.filter.key,
-                valueKey,
-                label: booleanFilter ? entry.filter.label : valueLabel,
+                id: `${filterKey}-${trimmedKey}`,
+                filterKey,
+                valueKey: trimmedKey,
+                label: booleanFilter ? (primary?.filter.label ?? trimmedKey) : valueLabel,
             });
         }
     }

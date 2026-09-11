@@ -5,61 +5,22 @@ import Image from "next/image";
 import Link from "next/link";
 import {AlignCenterOutlined, CheckOutlined, InfoCircleOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
 
+import {
+    PLACEHOLDER,
+    buildImageCandidates,
+    buildProductHref,
+    canHoverGallery,
+    formatPrice,
+    isRemoteUrl,
+    normalizeUrl,
+    pickVisibleSpecs,
+    prefersHoverSpecs,
+    type ShortSpec,
+} from "./productCard";
+
 import "./css/ProductCard.css";
 
-const PLACEHOLDER = "/images/placeholder.svg";
-
-function formatPrice(price: string | number): string {
-    return Number(price).toLocaleString("ru-RU");
-}
-
-function normalizeUrl(url: string): string {
-    const trimmed = url.trim();
-    if (trimmed.startsWith("//")) {
-        return `https:${trimmed}`;
-    }
-    return trimmed;
-}
-
-function buildImageCandidates(preview?: string | null, pics?: string[]): string[] {
-    const candidates: string[] = [];
-
-    const add = (url?: string | null) => {
-        if (!url?.trim()) return;
-        const normalized = normalizeUrl(url);
-        if (!candidates.includes(normalized)) {
-            candidates.push(normalized);
-        }
-    };
-
-    add(preview);
-    pics?.forEach(add);
-
-    return candidates;
-}
-
-function isRemoteUrl(url: string): boolean {
-    return url.startsWith("http://") || url.startsWith("https://");
-}
-
-function canHoverGallery(): boolean {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-}
-
-function prefersHoverSpecs(): boolean {
-    if (typeof window === "undefined") return false;
-    return (
-        window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
-        !window.matchMedia("(any-pointer: coarse)").matches
-    );
-}
-
-export interface ShortSpec {
-    title: string;
-    icon?: string | null;
-    text?: string | null;
-}
+export type {ShortSpec} from "./productCard";
 
 interface ProductCardProps {
     origin?: number;
@@ -69,48 +30,6 @@ interface ProductCardProps {
     pics?: string[];
     shortSpecs?: ShortSpec[] | null;
     priority?: boolean;
-}
-
-function transliterateRu(value: string): string {
-    const map: Record<string, string> = {
-        а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i", й: "y",
-        к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f",
-        х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu", я: "ya",
-    };
-
-    return value
-        .split("")
-        .map((char) => map[char] ?? char)
-        .join("");
-}
-
-function slugifyTitle(title: string): string {
-    const base = transliterateRu(title.trim().toLowerCase())
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .replace(/-+/g, "-");
-
-    return base || "product";
-}
-
-function buildProductHref(title: string, origin?: number): string | null {
-    if (!origin) return null;
-    return `/product/${slugifyTitle(title)}-${origin}`;
-}
-
-function isUsefulSpec(spec: ShortSpec): boolean {
-    const text = spec.text?.trim() ?? "";
-    if (!text) return false;
-
-    const lower = text.toLowerCase();
-    return !lower.includes("нет точной информации") && lower !== "unspecified";
-}
-
-function pickVisibleSpecs(specs?: ShortSpec[] | null): ShortSpec[] {
-    if (!Array.isArray(specs)) return [];
-    return specs.filter(isUsefulSpec).slice(0, 10);
 }
 
 function ProductCard({origin, title, price, preview, pics, shortSpecs, priority = false}: ProductCardProps) {
