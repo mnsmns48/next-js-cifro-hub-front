@@ -25,6 +25,7 @@ export interface SortOption {
 export interface FilterValue {
     id?: number;
     label?: string;
+    slug?: string | null;
     count?: number | string;
     description?: string;
     subtitle?: string;
@@ -234,6 +235,8 @@ export function getDisplayLabel(filter: ApiFilter, label: string): string {
 }
 
 export function getValueKey(kind: FilterKind, value: FilterValue, label: string): string {
+    const slug = value.slug?.trim();
+    if (slug) return slug;
     if (kind === "model") return label;
     if (value.id !== undefined && value.id !== null) return String(value.id);
     return label;
