@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="80" viewBox="0 0 1200 80" fill="none">
+  <rect width="1200" height="80" rx="40" fill="#F2F2F2"/>
+  <path d="M44 24C44 17.3726 49.3726 12 56 12C62.6274 12 68 17.3726 68 24C68 31.5 56 44 56 44C56 44 44 31.5 44 24Z" fill="#E2FC2A"/>
+  <circle cx="56" cy="24" r="4" fill="#F2F2F2"/>
+  <text x="84" y="36" fill="#1A1A1A" font-family="Arial, sans-serif" font-size="18" font-weight="700">+7 (978) 715-64-86</text>
+  <text x="84" y="58" fill="#707F8D" font-family="Arial, sans-serif" font-size="14" font-weight="500">п. Ленино, проспект Ленина 9</text>
+</svg>
