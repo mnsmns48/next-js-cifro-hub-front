@@ -3,7 +3,14 @@
 import {memo, useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {AlignCenterOutlined, CheckOutlined, InfoCircleOutlined, ShoppingCartOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
+import {
+    AlignCenterOutlined,
+    CheckOutlined,
+    InfoCircleOutlined,
+    ShoppingCartOutlined,
+    StarFilled,
+    StarOutlined
+} from "@ant-design/icons";
 
 import {
     PLACEHOLDER,
@@ -266,7 +273,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                         setFavorite((prev) => !prev);
                     }}
                 >
-                    {favorite ? <StarFilled /> : <StarOutlined />}
+                    {favorite ? <StarFilled/> : <StarOutlined/>}
                 </button>
 
                 <button
@@ -279,7 +286,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                         setCompare((prev) => !prev);
                     }}
                 >
-                    <AlignCenterOutlined />
+                    <AlignCenterOutlined/>
                 </button>
 
                 {visibleSpecs.length > 0 && (
@@ -292,7 +299,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                         onMouseLeave={scheduleCloseSpecs}
                         onClick={toggleSpecs}
                     >
-                        <InfoCircleOutlined />
+                        <InfoCircleOutlined/>
                     </button>
                 )}
             </div>
@@ -361,7 +368,8 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
                     setInCart((prev) => !prev);
                 }}
             >
-                {inCart ? <CheckOutlined className="product-card__button-icon"/> : <ShoppingCartOutlined className="product-card__button-icon"/>}
+                {inCart ? <CheckOutlined className="product-card__button-icon"/> :
+                    <ShoppingCartOutlined className="product-card__button-icon"/>}
                 {inCart ? "В корзине" : "В корзину"}
             </button>
         </article>

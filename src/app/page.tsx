@@ -1,11 +1,18 @@
 import PageContainer from "@/components/PageContainer";
 import InfiniteProductRendering from "@/components/InfiniteProductRendering";
+import {getProducts} from "../../lib/server/api/products";
 
-export default function HomePage() {
+
+export default async function HomePage() {
+    const initialData = await getProducts("0", 24);
+
     return (
         <main>
             <PageContainer>
-                <InfiniteProductRendering/>
+                <InfiniteProductRendering
+                    menuLevels="0"
+                    initialData={initialData}
+                />
             </PageContainer>
         </main>
     );
