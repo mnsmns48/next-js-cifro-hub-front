@@ -67,9 +67,7 @@ export const FILTER_LIST_PREVIEW = 5;
 export const CHIP_PREVIEW = 8;
 export const BRAND_CHIP_PREVIEW = 6;
 export const PRICE_OPTIONS_PREVIEW = 12;
-export const SKELETON_COUNT = 12;
 export const PRIORITY_CARD_COUNT = 8;
-export const ERROR_RETRY_MS = 20_000;
 export const HEADER_SELECTOR = ".app-header-wrapper";
 export const LISTING_SCROLL_GAP_PX = 8;
 
@@ -82,9 +80,6 @@ export function getWindowListingSearch(): string {
     return window.location.search.replace(/^\?/, "");
 }
 
-export function isAbortError(error: unknown): boolean {
-    return error instanceof DOMException && error.name === "AbortError";
-}
 
 export function asArray<T>(value: unknown): T[] {
     return Array.isArray(value) ? value : [];
@@ -160,7 +155,7 @@ export function getFilterValues(filter: ApiFilter): FilterValue[] {
         .filter((value): value is FilterValue => value !== null);
 }
 
-export function getFilterValueMeta(value: FilterValue): {label: string} | null {
+export function getFilterValueMeta(value: FilterValue): { label: string } | null {
     const rawLabel = value?.label?.trim();
     if (!rawLabel) return null;
 
@@ -182,7 +177,7 @@ function formatNumberRu(value: number): string {
     return new Intl.NumberFormat("ru-RU").format(value);
 }
 
-export function getPricePlaceholders(values: FilterValue[]): {from: string; to: string} {
+export function getPricePlaceholders(values: FilterValue[]): { from: string; to: string } {
     const bounds: number[] = [];
     for (const value of values) {
         const raw = value?.label?.trim();
@@ -338,15 +333,15 @@ export function buildAppliedFilterChips(
 
             let valueLabel = trimmedKey;
             lookup:
-            for (const entry of entries) {
-                for (const value of entry.values) {
-                    const valueMeta = getFilterValueMeta(value);
-                    if (!valueMeta) continue;
-                    if (getValueKey(entry.kind, value, valueMeta.label) !== trimmedKey) continue;
-                    valueLabel = getDisplayLabel(entry.filter, valueMeta.label);
-                    break lookup;
+                for (const entry of entries) {
+                    for (const value of entry.values) {
+                        const valueMeta = getFilterValueMeta(value);
+                        if (!valueMeta) continue;
+                        if (getValueKey(entry.kind, value, valueMeta.label) !== trimmedKey) continue;
+                        valueLabel = getDisplayLabel(entry.filter, valueMeta.label);
+                        break lookup;
+                    }
                 }
-            }
 
             chips.push({
                 id: `${filterKey}-${trimmedKey}`,

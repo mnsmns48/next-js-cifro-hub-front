@@ -3,6 +3,7 @@ import {API3_SSR} from "../../api";
 import {ShortSpec} from "@/components/productCard";
 
 
+
 export interface Product {
     id: number;
     origin: number;

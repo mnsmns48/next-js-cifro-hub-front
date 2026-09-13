@@ -10,7 +10,8 @@ import HeaderCatalogButton from "@/components/header/HeaderCatalogButton";
 import PopUpCatalogMenu from "@/components/catalog/PopUpCatalogMenu";
 
 import "../css/AppHeader.css";
-import {HubLevel} from "@/lib/server/api/catalog";
+import {HubLevel} from "../../../lib/server/api/catalog";
+
 
 interface AppHeaderProps {
     levels: HubLevel[];

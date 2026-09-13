@@ -6,9 +6,10 @@ import ProductCard from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 
-import type {Product, ProductsResponse} from "@/types/products";
+
 
 import "./css/ProductGrid.css";
+import {Product, ProductsResponse} from "../../lib/server/api/product";
 
 interface InfiniteProductRenderingProps {
     menuLevels?: string;
