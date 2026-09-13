@@ -1,5 +1,7 @@
 import ProductDetail from "@/components/product/ProductDetail";
 import {notFound} from "next/navigation";
+import {getProduct} from "../../../../lib/server/api/product";
+
 
 function extractOrigin(value: string): string | null {
     const trimmed = value.trim();
@@ -14,8 +16,8 @@ function extractOrigin(value: string): string | null {
 }
 
 export default async function ProductPage({
-    params,
-}: {
+                                              params,
+                                          }: {
     params: Promise<{ origin: string }>;
 }) {
     const {origin: rawOrigin} = await params;
@@ -25,5 +27,13 @@ export default async function ProductPage({
         notFound();
     }
 
-    return <ProductDetail origin={origin} />;
+    const product = await getProduct(origin);
+
+    if (!product) {
+        notFound();
+    }
+
+    return (
+        <ProductDetail key={product.origin} product={product}/>
+    );
 }

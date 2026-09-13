@@ -1,8 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useState} from "react";
-import Link from "next/link";
-import {Spin} from "antd";
+import {useCallback, useMemo, useState} from "react";
 
 import CatalogBreadcrumbs from "@/components/catalog/CatalogBreadcrumbs";
 
@@ -19,15 +17,14 @@ import {
     buildProductImages,
     getCons,
     getPros,
+    ProductDetailData,
     specFeatures,
     stepGalleryIndex,
 } from "./productDetail";
-import {useProductDetail} from "./useProductDetail";
 
 import "../css/ProductDetail.css";
 
-export default function ProductDetail({origin}: {origin: string}) {
-    const {product, loading, error} = useProductDetail(origin);
+export default function ProductDetail({product}: { product: ProductDetailData; }) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [useNativeImg, setUseNativeImg] = useState(false);
     const [inCart, setInCart] = useState(false);
@@ -37,13 +34,6 @@ export default function ProductDetail({origin}: {origin: string}) {
     const [prosSheetOpen, setProsSheetOpen] = useState(false);
     const [briefSpecsSheetOpen, setBriefSpecsSheetOpen] = useState(false);
 
-    useEffect(() => {
-        setActiveIndex(0);
-        setUseNativeImg(false);
-        setGalleryOpen(false);
-        setProsSheetOpen(false);
-        setBriefSpecsSheetOpen(false);
-    }, [origin]);
 
     const images = useMemo(() => buildProductImages(product), [product]);
     const currentUrl = images[Math.min(activeIndex, Math.max(0, images.length - 1))] ?? null;
@@ -54,7 +44,7 @@ export default function ProductDetail({origin}: {origin: string}) {
     const briefSpecs = product ? buildBriefSpecs(product, hasPros ? 7 : 12) : [];
     const briefSheetSpecs = useMemo(
         () => buildBriefSheetSpecs(product?.short_specs),
-        [product?.short_specs],
+        [product.short_specs],
     );
 
     const stepGallery = useCallback((delta: number) => {
@@ -71,23 +61,6 @@ export default function ProductDetail({origin}: {origin: string}) {
     const closeBriefSheet = useCallback(() => setBriefSpecsSheetOpen(false), []);
     const closeGallery = useCallback(() => setGalleryOpen(false), []);
 
-    if (loading) {
-        return (
-            <div className="product-detail__loading">
-                <Spin/>
-            </div>
-        );
-    }
-
-    if (error || !product) {
-        return (
-            <section className="product-detail__empty">
-                <h1>Товар не найден</h1>
-                <p>Проверьте ссылку или вернитесь в каталог</p>
-                <Link href="/catalog">В каталог</Link>
-            </section>
-        );
-    }
 
     const metaParts = [
         product.model ? `Модель: ${product.model}` : null,

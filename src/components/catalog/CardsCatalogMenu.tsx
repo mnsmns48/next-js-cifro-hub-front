@@ -1,16 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import {Card, Spin} from "antd";
+import {Card} from "antd";
 
 import {toCatalogLevelHref} from "./catalogHref";
-import {catalogSidebarLevels, useCatalogLevels} from "./useCatalogLevels";
+import {catalogSidebarLevels} from "./catalogLevels";
+import type {HubLevel} from "@/types/catalog";
 
 import "../css/CardsCatalogMenu.css";
 
 const PLACEHOLDER = "/images/placeholder.svg";
 
-function CategoryIcon({src, alt, className}: {src?: string | null; alt: string; className: string}) {
+function CategoryIcon({
+                          src,
+                          alt,
+                          className,
+                      }: {
+    src?: string | null;
+    alt: string;
+    className: string;
+}) {
     return (
         <img
             src={src || PLACEHOLDER}
@@ -26,18 +35,15 @@ function CategoryIcon({src, alt, className}: {src?: string | null; alt: string; 
     );
 }
 
-export default function CardsCatalogMenu() {
-    const {levels, loading} = useCatalogLevels();
+export default function CardsCatalogMenu({
+                                             levels,
+                                         }: {
+    levels: HubLevel[];
+}) {
+    const levelsById = new Map(
+        levels.map((level) => [level.id, level]),
+    );
 
-    if (loading) {
-        return (
-            <div className="cards-loading">
-                <Spin size="small"/>
-            </div>
-        );
-    }
-
-    const levelsById = new Map(levels.map((level) => [level.id, level]));
     const cards = catalogSidebarLevels(levels);
 
     return (
@@ -50,9 +56,16 @@ export default function CardsCatalogMenu() {
                 >
                     <Card hoverable className="card-catalog">
                         <div className="card-icon-wrap">
-                            <CategoryIcon src={card.icon} alt={card.label} className="card-image"/>
+                            <CategoryIcon
+                                src={card.icon}
+                                alt={card.label}
+                                className="card-image"
+                            />
                         </div>
-                        <div className="card-title">{card.label}</div>
+
+                        <div className="card-title">
+                            {card.label}
+                        </div>
                     </Card>
                 </Link>
             ))}
