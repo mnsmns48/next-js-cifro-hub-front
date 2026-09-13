@@ -7,9 +7,9 @@ import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 
 
-
 import "./css/ProductGrid.css";
-import {Product, ProductsResponse} from "../../lib/server/api/product";
+import {Product, ProductsResponse} from "@/types/product";
+
 
 interface InfiniteProductRenderingProps {
     menuLevels?: string;

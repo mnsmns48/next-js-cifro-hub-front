@@ -22,14 +22,13 @@ import {
     normalizeUrl,
     pickVisibleSpecs,
     prefersHoverSpecs,
-    type ShortSpec,
 } from "./productCard";
 
 import "./css/ProductCard.css";
+import {ShortSpec} from "@/types/product";
 
-export type {ShortSpec} from "./productCard";
 
-interface ProductCardProps {
+export interface ProductCardProps {
     origin?: number;
     title: string;
     price: string | number;
@@ -38,6 +37,7 @@ interface ProductCardProps {
     shortSpecs?: ShortSpec[] | null;
     priority?: boolean;
 }
+
 
 function ProductCard({origin, title, price, preview, pics, shortSpecs, priority = false}: ProductCardProps) {
     const productHref = buildProductHref(title, origin);

@@ -1,10 +1,7 @@
+import {ShortSpec} from "@/types/product";
+
 export const PLACEHOLDER = "/images/placeholder.svg";
 
-export interface ShortSpec {
-    title: string;
-    icon?: string | null;
-    text?: string | null;
-}
 
 export function formatPrice(price: string | number): string {
     return Number(price).toLocaleString("ru-RU");

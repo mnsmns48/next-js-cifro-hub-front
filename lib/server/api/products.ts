@@ -1,24 +1,7 @@
 import "server-only";
 import {API3_SSR} from "../../api";
-import {ShortSpec} from "@/components/productCard";
+import {ProductsResponse} from "@/types/product";
 
-
-
-export interface Product {
-    id: number;
-    origin: number;
-    title: string;
-    output_price: number;
-    preview?: string;
-    pics?: string[];
-    short_specs?: ShortSpec[];
-}
-
-export interface ProductsResponse {
-    products: Product[];
-    next_cursor: number | null;
-    has_more: boolean;
-}
 
 export async function getProducts(
     menuLevels: string = "0",

@@ -4,9 +4,10 @@ import {useRouter} from "next/navigation";
 
 import {toCatalogLevelHref} from "./catalogHref";
 import {catalogChildren, catalogSidebarLevels} from "./catalogLevels";
-import type {HubLevel} from "@/types/catalog";
+
 
 import "../css/PopUpCatalogMenu.css";
+import {HubLevel} from "@/types/catalog";
 
 export interface PopUpCatalogMenuProps {
     open: boolean;

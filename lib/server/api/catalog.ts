@@ -1,16 +1,6 @@
 import "server-only";
 import {API3_SSR} from "../../api";
-
-
-export interface HubLevel {
-    id: number;
-    sort_order: number;
-    label: string;
-    icon: string | null;
-    slug?: string | null;
-    parent_id: number;
-    depth: number;
-}
+import {HubLevel} from "@/types/catalog";
 
 
 export async function getCatalogLevels(): Promise<HubLevel[]> {

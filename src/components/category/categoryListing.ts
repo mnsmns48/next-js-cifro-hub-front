@@ -1,14 +1,4 @@
-import type {ShortSpec} from "@/components/ProductCard";
-
-export interface Product {
-    id: number;
-    origin: number;
-    title: string;
-    output_price: number;
-    preview?: string;
-    pics?: string[];
-    short_specs?: ShortSpec[];
-}
+import {Product} from "@/types/product";
 
 export interface Breadcrumb {
     id: number;

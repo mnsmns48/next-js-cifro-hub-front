@@ -5,9 +5,10 @@ import {Card} from "antd";
 
 import {toCatalogLevelHref} from "./catalogHref";
 import {catalogSidebarLevels} from "./catalogLevels";
-import type {HubLevel} from "@/types/catalog";
+
 
 import "../css/CardsCatalogMenu.css";
+import {HubLevel} from "@/types/catalog";
 
 const PLACEHOLDER = "/images/placeholder.svg";
 

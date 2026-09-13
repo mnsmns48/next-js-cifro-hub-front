@@ -1,5 +1,6 @@
 import {isCatalogRoot} from "./catalogHref";
-import type {HubLevel} from "@/types/catalog";
+import {HubLevel} from "@/types/catalog";
+
 
 export function catalogChildren(
     levels: HubLevel[],
