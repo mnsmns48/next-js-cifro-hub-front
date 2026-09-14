@@ -57,3 +57,10 @@
         border-radius: 12px;
     }
 }
+
+.product-grid-load-error {
+    padding: 20px 0;
+    text-align: center;
+    font-size: 14px;
+    color: #777;
+}

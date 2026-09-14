@@ -1,47 +1,50 @@
 "use client";
 
-import {useState, useEffect, useRef} from "react";
-import ProductCard, {type ShortSpec} from "@/components/ProductCard";
+import {useEffect, useRef, useState} from "react";
+
+import ProductCard from "@/components/ProductCard";
 import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import ServerError from "@/components/ServerError";
 
-import "./css/ProductGrid.css";
 
-interface Product {
-    id: number;
-    origin: number;
-    title: string;
-    output_price: number;
-    preview?: string;
-    pics?: string[];
-    short_specs?: ShortSpec[];
-}
+import "./css/ProductGrid.css";
+import {Product, ProductsResponse} from "@/types/product";
+
 
 interface InfiniteProductRenderingProps {
     menuLevels?: string;
+    initialData: ProductsResponse;
 }
 
 function isAbortError(error: unknown): boolean {
     return error instanceof DOMException && error.name === "AbortError";
 }
 
-export default function InfiniteProductRendering({menuLevels = "0"}: InfiniteProductRenderingProps) {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function InfiniteProductRendering({menuLevels = "0", initialData,}: InfiniteProductRenderingProps) {
+    const [products, setProducts] = useState<Product[]>(initialData.products);
+
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const loadingRef = useRef(false);
-    const hasMoreRef = useRef(true);
-    const cursorRef = useRef<number | null>(null);
-    const menuLevelsRef = useRef(menuLevels);
-    const abortControllerRef = useRef<AbortController | null>(null);
 
-    async function loadProducts(initial = false) {
+    const hasMoreRef = useRef(initialData.has_more);
+    const cursorRef = useRef<number | null>(
+        initialData.next_cursor,
+    );
+
+    const menuLevelsRef = useRef(menuLevels);
+
+    const abortControllerRef =
+        useRef<AbortController | null>(null);
+
+    async function loadProducts() {
         if (loadingRef.current) return;
-        if (!initial && !hasMoreRef.current) return;
+        if (!hasMoreRef.current) return;
 
         abortControllerRef.current?.abort();
+
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
@@ -54,43 +57,65 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
                 menu_levels: menuLevelsRef.current,
             });
 
-            if (!initial && cursorRef.current) {
-                params.append("cursor", cursorRef.current.toString());
+            if (cursorRef.current !== null) {
+                params.set(
+                    "cursor",
+                    cursorRef.current.toString(),
+                );
             }
 
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api3/products?${params.toString()}`,
-                {signal: controller.signal},
-            ).catch((err: unknown) => {
-                if (isAbortError(err)) return null;
-                throw err;
-            });
-
-            if (controller.signal.aborted || !res) return;
+                `/api3/products?${params.toString()}`,
+                {
+                    signal: controller.signal,
+                },
+            );
 
             if (!res.ok) {
-                setError(true);
-                return;
+                throw new Error(
+                    `Failed to load products: ${res.status}`,
+                );
             }
 
             const data = await res.json();
-            if (controller.signal.aborted) return;
 
-            const nextProducts: Product[] = Array.isArray(data.products) ? data.products : [];
+            if (controller.signal.aborted) {
+                return;
+            }
+
+            const nextProducts: Product[] =
+                Array.isArray(data.products)
+                    ? data.products
+                    : [];
 
             setProducts((prev) => {
-                const base = initial ? [] : prev;
-                const merged = [...base, ...nextProducts];
-                return merged.filter(
-                    (item, index, arr) => arr.findIndex((x) => x.origin === item.origin) === index
+                const origins = new Set(
+                    prev.map((item) => item.origin),
                 );
+
+                return [
+                    ...prev,
+                    ...nextProducts.filter(
+                        (item) => !origins.has(item.origin),
+                    ),
+                ];
             });
 
-            cursorRef.current = data.next_cursor;
-            hasMoreRef.current = Boolean(data.has_more);
+            cursorRef.current =
+                data.next_cursor ?? null;
+
+            hasMoreRef.current =
+                Boolean(data.has_more);
+
             setError(false);
         } catch (err: unknown) {
-            if (isAbortError(err) || controller.signal.aborted) return;
+            if (
+                isAbortError(err) ||
+                controller.signal.aborted
+            ) {
+                return;
+            }
+
             setError(true);
         } finally {
             if (!controller.signal.aborted) {
@@ -100,29 +125,18 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
         }
     }
 
+
     useEffect(() => {
-        menuLevelsRef.current = menuLevels;
-        loadingRef.current = false;
-        hasMoreRef.current = true;
-        cursorRef.current = null;
-
-        const id = setTimeout(() => {
-            setProducts([]);
-            setError(false);
-            void loadProducts(true);
-        }, 0);
-
         return () => {
-            clearTimeout(id);
             abortControllerRef.current?.abort();
         };
-    }, [menuLevels]);
+    }, []);
 
     useEffect(() => {
         if (!error) return;
 
         const id = setInterval(() => {
-            void loadProducts(true);
+            void loadProducts();
         }, 20000);
 
         return () => clearInterval(id);
@@ -149,37 +163,52 @@ export default function InfiniteProductRendering({menuLevels = "0"}: InfinitePro
         return () => observer.disconnect();
     }, [error, loading, products.length]);
 
-    const isInitialLoad = loading && products.length === 0;
-    const skeletonCount = isInitialLoad ? 12 : 6;
+    const skeletonCount = 6;
 
     return (
         <>
-            {error ? (
+            {error && products.length === 0 ? (
                 <ServerError/>
             ) : (
-                <div className="product-grid">
-                    {products.map((p, index) => (
-                        <ProductCard
-                            key={p.origin}
-                            origin={p.origin}
-                            title={p.title}
-                            price={p.output_price}
-                            preview={p.preview}
-                            pics={p.pics}
-                            shortSpecs={p.short_specs}
-                            priority={index < 8}
-                        />
-                    ))}
+                <>
+                    <div className="product-grid">
+                        {products.map((p, index) => (
+                            <ProductCard
+                                key={p.origin}
+                                origin={p.origin}
+                                title={p.title}
+                                price={p.output_price}
+                                preview={p.preview}
+                                pics={p.pics}
+                                shortSpecs={p.short_specs}
+                                priority={index < 8}
+                            />
+                        ))}
 
-                    {loading &&
-                        Array.from({length: skeletonCount}).map((_, i) => (
-                            <ProductCardSkeleton key={`skeleton-${i}`}/>
-                        ))
-                    }
+                        {loading &&
+                            Array.from({length: skeletonCount}).map((_, i) => (
+                                <ProductCardSkeleton
+                                    key={`skeleton-${i}`}
+                                />
+                            ))
+                        }
 
-                    <div ref={sentinelRef} className="product-grid-sentinel"/>
-                </div>
+                        {!error && (
+                            <div
+                                ref={sentinelRef}
+                                className="product-grid-sentinel"
+                            />
+                        )}
+                    </div>
+
+                    {error && products.length > 0 && (
+                        <div className="product-grid-load-error">
+                            Не удалось загрузить следующие товары.
+                            Повторная попытка будет выполнена автоматически.
+                        </div>
+                    )}
+                </>
             )}
         </>
     );
-}
+};

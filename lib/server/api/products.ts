@@ -1,0 +1,37 @@
+import "server-only";
+import {API3_SSR} from "../../api";
+import {ProductsResponse} from "@/types/product";
+
+
+export async function getProducts(
+    menuLevels: string = "0",
+    limit: number = 24,
+): Promise<ProductsResponse> {
+    const params = new URLSearchParams({
+        limit: limit.toString(),
+        menu_levels: menuLevels,
+    });
+
+    const response = await fetch(
+        `${API3_SSR}/products?${params.toString()}`,
+        {
+            cache: "no-store",
+        },
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Failed to load products: ${response.status}`,
+        );
+    }
+
+    const data = await response.json();
+
+    return {
+        products: Array.isArray(data.products)
+            ? data.products
+            : [],
+        next_cursor: data.next_cursor ?? null,
+        has_more: Boolean(data.has_more),
+    };
+}

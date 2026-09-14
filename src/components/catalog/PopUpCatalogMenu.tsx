@@ -1,30 +1,35 @@
-"use client";
-
-import {Dispatch, SetStateAction, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import {useRouter} from "next/navigation";
-import {Spin} from "antd";
+
 
 import {toCatalogLevelHref} from "./catalogHref";
-import {catalogChildren, catalogSidebarLevels, useCatalogLevels, type HubLevel} from "./useCatalogLevels";
+import {catalogChildren, catalogSidebarLevels} from "./catalogLevels";
+
 
 import "../css/PopUpCatalogMenu.css";
+import {HubLevel} from "@/types/catalog";
 
-interface PopUpCatalogMenuProps {
+export interface PopUpCatalogMenuProps {
     open: boolean;
-    setOpen: Dispatch<SetStateAction<boolean>>;
+    setOpen: (open: boolean) => void;
+    levels: HubLevel[];
 }
 
-export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps) {
+export default function PopUpCatalogMenu({open, setOpen, levels}: PopUpCatalogMenuProps) {
     const router = useRouter();
-    const {levels, loading} = useCatalogLevels();
-    const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+
+    const [activeCategoryId, setActiveCategoryId] =
+        useState<number | null>(null);
 
     const sidebarItems = useMemo(
         () => catalogSidebarLevels(levels),
         [levels],
     );
+
     const levelsById = useMemo(
-        () => new Map(levels.map((level) => [level.id, level])),
+        () => new Map(
+            levels.map((level) => [level.id, level]),
+        ),
         [levels],
     );
 
@@ -55,74 +60,69 @@ export default function PopUpCatalogMenu({open, setOpen}: PopUpCatalogMenuProps)
                 onMouseEnter={() => setOpen(true)}
                 onMouseLeave={() => setOpen(false)}
             >
-                {loading ? (
-                    <div className="popup-loading">
-                        <Spin size="small"/>
+
+                <div className="mega-menu">
+                    <aside className="mega-menu__sidebar">
+                        {sidebarItems.map((category) => (
+                            <button
+                                key={category.id}
+                                type="button"
+                                className={`mega-menu__category${resolvedActiveCategoryId === category.id ? " mega-menu__category--active" : ""}`}
+                                onMouseEnter={() => setActiveCategoryId(category.id)}
+                                onClick={() => navigateToMenu(category)}
+                            >
+                                {category.icon && (
+                                    <img
+                                        src={category.icon}
+                                        alt=""
+                                        className="mega-menu__category-icon"
+                                    />
+                                )}
+                                <span>{category.label}</span>
+                            </button>
+                        ))}
+                    </aside>
+
+                    <div className="mega-menu__content">
+                        {activeGroups.length === 0 ? (
+                            <p className="mega-menu__empty">Подкатегории не найдены</p>
+                        ) : (
+                            <div className="mega-menu__groups">
+                                {activeGroups.map((group) => {
+                                    const items = catalogChildren(levels, group.id);
+
+                                    return (
+                                        <section key={group.id} className="mega-menu__group">
+                                            <button
+                                                type="button"
+                                                className="mega-menu__group-title"
+                                                onClick={() => navigateToMenu(group)}
+                                            >
+                                                {group.label}
+                                            </button>
+
+                                            {items.length > 0 ? (
+                                                <ul className="mega-menu__links">
+                                                    {items.map((item) => (
+                                                        <li key={item.id}>
+                                                            <button
+                                                                type="button"
+                                                                className="mega-menu__link"
+                                                                onClick={() => navigateToMenu(item)}
+                                                            >
+                                                                {item.label}
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : null}
+                                        </section>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="mega-menu">
-                        <aside className="mega-menu__sidebar">
-                            {sidebarItems.map((category) => (
-                                <button
-                                    key={category.id}
-                                    type="button"
-                                    className={`mega-menu__category${resolvedActiveCategoryId === category.id ? " mega-menu__category--active" : ""}`}
-                                    onMouseEnter={() => setActiveCategoryId(category.id)}
-                                    onClick={() => navigateToMenu(category)}
-                                >
-                                    {category.icon && (
-                                        <img
-                                            src={category.icon}
-                                            alt=""
-                                            className="mega-menu__category-icon"
-                                        />
-                                    )}
-                                    <span>{category.label}</span>
-                                </button>
-                            ))}
-                        </aside>
-
-                        <div className="mega-menu__content">
-                            {activeGroups.length === 0 ? (
-                                <p className="mega-menu__empty">Подкатегории не найдены</p>
-                            ) : (
-                                <div className="mega-menu__groups">
-                                    {activeGroups.map((group) => {
-                                        const items = catalogChildren(levels, group.id);
-
-                                        return (
-                                            <section key={group.id} className="mega-menu__group">
-                                                <button
-                                                    type="button"
-                                                    className="mega-menu__group-title"
-                                                    onClick={() => navigateToMenu(group)}
-                                                >
-                                                    {group.label}
-                                                </button>
-
-                                                {items.length > 0 ? (
-                                                    <ul className="mega-menu__links">
-                                                        {items.map((item) => (
-                                                            <li key={item.id}>
-                                                                <button
-                                                                    type="button"
-                                                                    className="mega-menu__link"
-                                                                    onClick={() => navigateToMenu(item)}
-                                                                >
-                                                                    {item.label}
-                                                                </button>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                ) : null}
-                                            </section>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                </div>
             </div>
         </>
     );

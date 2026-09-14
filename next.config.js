@@ -9,7 +9,15 @@ const nextConfig = {
                 hostname: "s3.twcstorage.ru",
             },
             {
+                protocol: "http",
+                hostname: "s3.twcstorage.ru",
+            },
+            {
                 protocol: "https",
+                hostname: "*.s3.twcstorage.ru",
+            },
+            {
+                protocol: "http",
                 hostname: "*.s3.twcstorage.ru",
             },
             {
@@ -17,15 +25,29 @@ const nextConfig = {
                 hostname: "swift.twcstorage.ru",
             },
             {
+                protocol: "http",
+                hostname: "swift.twcstorage.ru",
+            },
+            {
                 protocol: "https",
+                hostname: "*.swift.twcstorage.ru",
+            },
+            {
+                protocol: "http",
                 hostname: "*.swift.twcstorage.ru",
             },
             {
                 protocol: "https",
                 hostname: "*.twcstorage.ru",
             },
+            {
+                protocol: "http",
+                hostname: "*.twcstorage.ru",
+            },
         ],
     },
+
+    allowedDevOrigins: ["192.168.88.223"],
 
     async rewrites() {
         return [

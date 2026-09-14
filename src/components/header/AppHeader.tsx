@@ -10,8 +10,14 @@ import HeaderCatalogButton from "@/components/header/HeaderCatalogButton";
 import PopUpCatalogMenu from "@/components/catalog/PopUpCatalogMenu";
 
 import "../css/AppHeader.css";
+import {HubLevel} from "@/types/catalog";
 
-export default function AppHeader() {
+
+interface AppHeaderProps {
+    levels: HubLevel[];
+}
+
+export default function AppHeader({levels}: AppHeaderProps) {
     const [catalogOpen, setCatalogOpen] = useState(false);
 
     return (
@@ -53,7 +59,7 @@ export default function AppHeader() {
                     />
                 )}
 
-                <PopUpCatalogMenu open={catalogOpen} setOpen={setCatalogOpen}/>
+                <PopUpCatalogMenu open={catalogOpen} setOpen={setCatalogOpen} levels={levels}/>
             </div>
         </>
     );
