@@ -47,7 +47,6 @@ const nextConfig = {
         ],
     },
 
-
     allowedDevOrigins: ["192.168.88.223"],
 
     async rewrites() {
