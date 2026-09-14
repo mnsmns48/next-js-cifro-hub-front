@@ -305,7 +305,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
             </div>
 
             {productHref ? (
-                <Link href={productHref} className="product-card__image-link">
+                <Link href={productHref} prefetch={false} className="product-card__image-link">
                     <div
                         className="product-card__image-wrap"
                         onMouseEnter={handleMouseEnter}
@@ -353,7 +353,7 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
             )}
 
             {productHref ? (
-                <Link href={productHref} className="product-card__title">{title}</Link>
+                <Link href={productHref} prefetch={false} className="product-card__title">{title}</Link>
             ) : (
                 <h3 className="product-card__title">{title}</h3>
             )}
