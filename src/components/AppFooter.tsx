@@ -35,7 +35,7 @@ export default function AppFooter() {
                     <div className="app-footer__column">
                         <h2 className="app-footer__title">Покупателям</h2>
                         <nav className="app-footer__nav" aria-label="Ссылки в футере">
-                            <Link href="/catalog" prefetch={false}>Каталог</Link>
+                            <Link href="/catalog">Каталог</Link>
                             <Link href="/cart" prefetch={false}>Корзина</Link>
                             <Link href="/login" prefetch={false}>Войти</Link>
                         </nav>
