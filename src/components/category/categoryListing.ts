@@ -241,6 +241,27 @@ export function uniqueFilterValues(kind: FilterKind, values: FilterValue[]): Fil
     return unique;
 }
 
+export function valuesWithSelectedFirst(
+    kind: FilterKind,
+    values: FilterValue[],
+    selectedValues: string[],
+): FilterValue[] {
+    if (selectedValues.length === 0) return values;
+
+    const selected = new Set(selectedValues);
+    const picked: FilterValue[] = [];
+    const rest: FilterValue[] = [];
+
+    for (const value of values) {
+        const valueMeta = getFilterValueMeta(value);
+        const valueKey = valueMeta ? getValueKey(kind, value, valueMeta.label) : "";
+        if (valueKey && selected.has(valueKey)) picked.push(value);
+        else rest.push(value);
+    }
+
+    return [...picked, ...rest];
+}
+
 export function filterExpandKey(kind: FilterKind, filterKey: string): string {
     return `${kind}-${filterKey}`;
 }

@@ -1,4 +1,5 @@
 import type {ReactNode} from "react";
+import type {Viewport} from "next";
 
 import "./globals.css";
 import AppHeader from "@/components/header/AppHeader";
@@ -7,6 +8,12 @@ import MobileTabBar from "@/components/header/MobileTabBar";
 import PageContainer from "@/components/PageContainer";
 import ScrollToTop from "@/components/ScrollToTop";
 import {getCatalogLevels} from "../../lib/server/api/catalog";
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    interactiveWidget: "overlays-content",
+};
 
 export default async function RootLayout({children}: { children: ReactNode }) {
     const levels = await getCatalogLevels();
