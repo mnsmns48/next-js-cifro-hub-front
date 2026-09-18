@@ -28,7 +28,7 @@ export default function AppHeader({levels}: AppHeaderProps) {
 
             <div className={`app-header-wrapper${catalogOpen ? " app-header-wrapper--catalog-open" : ""}`}>
                 <div className="app-header">
-                    <Link href="/" className="header-mobile-logo" aria-label="На главную">
+                    <Link href="/catalog" className="header-mobile-logo" aria-label="Каталог">
                         <img
                             src="/logo-cifro-hub.svg"
                             alt="Cifro Hub"

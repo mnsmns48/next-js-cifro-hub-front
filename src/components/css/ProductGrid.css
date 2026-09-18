@@ -6,6 +6,10 @@
     overflow-anchor: none;
 }
 
+.product-grid > * {
+    min-width: 0;
+}
+
 .product-grid-sentinel {
     grid-column: 1 / -1;
     height: 1px;

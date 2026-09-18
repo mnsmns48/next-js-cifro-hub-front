@@ -1,6 +1,10 @@
+"use client";
+
+import {useState, type ReactNode} from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+import StubModal from "@/components/header/StubModal";
 import "./css/AppFooter.css";
 
 const MAPS_URL =
@@ -9,9 +13,12 @@ const MAPS_URL =
 const PHONE = "+7 (978) 715-64-86";
 const PHONE_HREF = "tel:+79787156486";
 const ADDRESS = "п. Ленино, проспект Ленина 9";
+const TELEGRAM_URL = "https://t.me/cifrotech_mobile";
+const MAX_URL = "https://max.ru/u/f9LHodD0cOKICsO4neILoVK5xHaebTm1fO1QVTEKRGgP6hwrKIsL521tDkE";
 
 export default function AppFooter() {
     const year = new Date().getFullYear();
+    const [stubOpen, setStubOpen] = useState(false);
 
     return (
         <footer className="app-footer">
@@ -30,14 +37,19 @@ export default function AppFooter() {
                             <span className="app-footer__brand-name">ЦифроХаб</span>
                         </Link>
                         <p className="app-footer__tagline">Магазин техники и электроники</p>
+                        <p className="app-footer__notice">Сайт запущен в тестовом режиме.</p>
                     </div>
 
                     <div className="app-footer__column">
                         <h2 className="app-footer__title">Покупателям</h2>
                         <nav className="app-footer__nav" aria-label="Ссылки в футере">
                             <Link href="/catalog">Каталог</Link>
-                            <Link href="/cart" prefetch={false}>Корзина</Link>
-                            <Link href="/login" prefetch={false}>Войти</Link>
+                            <button type="button" onClick={() => setStubOpen(true)}>
+                                Корзина
+                            </button>
+                            <button type="button" onClick={() => setStubOpen(true)}>
+                                Войти
+                            </button>
                         </nav>
                     </div>
 
@@ -66,13 +78,67 @@ export default function AppFooter() {
                         >
                             {ADDRESS}
                         </a>
+                        <div className="app-footer__socials">
+                            <FooterSocial href={TELEGRAM_URL} label="Telegram">
+                                <TelegramIcon/>
+                            </FooterSocial>
+                            <FooterSocial href={MAX_URL} label="MAX">
+                                <MaxIcon/>
+                            </FooterSocial>
+                        </div>
                     </div>
                 </div>
 
                 <div className="app-footer__bottom">
+                    <p className="app-footer__disclaimer">
+                        Опубликованные цены на сайте не являются публичной офертой.
+                    </p>
                     <span>© {year} ЦифроХаб</span>
                 </div>
             </div>
+            <StubModal
+                open={stubOpen}
+                title="Раздел в разработке"
+                onClose={() => setStubOpen(false)}
+            />
         </footer>
     );
+}
+
+function FooterSocial({
+    href,
+    label,
+    children,
+}: {
+    href: string;
+    label: string;
+    children: ReactNode;
+}) {
+    if (!href) {
+        return (
+            <span className="app-footer__social" title={label} aria-label={label}>
+                {children}
+            </span>
+        );
+    }
+
+    return (
+        <a
+            href={href}
+            className="app-footer__social"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={label}
+        >
+            {children}
+        </a>
+    );
+}
+
+function TelegramIcon() {
+    return <span className="app-footer__social-icon app-footer__social-icon--telegram" aria-hidden="true"/>;
+}
+
+function MaxIcon() {
+    return <span className="app-footer__social-icon app-footer__social-icon--max" aria-hidden="true"/>;
 }

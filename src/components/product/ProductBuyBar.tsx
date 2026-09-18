@@ -1,8 +1,8 @@
 "use client";
 
+import {Tooltip} from "antd";
 import {
     AlignCenterOutlined,
-    CheckOutlined,
     InfoCircleOutlined,
     ShoppingCartOutlined,
     StarFilled,
@@ -13,21 +13,17 @@ import {formatPrice} from "./productDetail";
 
 export default function ProductBuyBar({
     price,
-    inCart,
     favorite,
     compare,
     showBriefSpecs,
-    onCart,
     onFavorite,
     onCompare,
     onOpenBriefSpecs,
 }: {
     price: string | number;
-    inCart: boolean;
     favorite: boolean;
     compare: boolean;
     showBriefSpecs: boolean;
-    onCart: () => void;
     onFavorite: () => void;
     onCompare: () => void;
     onOpenBriefSpecs: () => void;
@@ -36,14 +32,14 @@ export default function ProductBuyBar({
         <aside className="product-detail__buy">
             <p className="product-detail__price">{formatPrice(price)} ₽</p>
             <div className="product-detail__buy-row">
-                <button
-                    type="button"
-                    className={`product-detail__cart${inCart ? " product-detail__cart--in" : ""}`}
-                    onClick={onCart}
-                >
-                    {inCart ? <CheckOutlined/> : <ShoppingCartOutlined/>}
-                    {inCart ? "В корзине" : "В корзину"}
-                </button>
+                <Tooltip title="В разработке">
+                    <span className="product-detail__cart-wrap">
+                        <button type="button" className="product-detail__cart" disabled>
+                            <ShoppingCartOutlined/>
+                            В корзину
+                        </button>
+                    </span>
+                </Tooltip>
                 <div className="product-detail__buy-actions">
                     <button
                         type="button"

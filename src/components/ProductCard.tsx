@@ -3,9 +3,9 @@
 import {memo, useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
 import Image from "next/image";
 import Link from "next/link";
+import {Tooltip} from "antd";
 import {
     AlignCenterOutlined,
-    CheckOutlined,
     InfoCircleOutlined,
     ShoppingCartOutlined,
     StarFilled,
@@ -47,7 +47,6 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
     const [useNativeImg, setUseNativeImg] = useState(false);
     const [favorite, setFavorite] = useState(false);
     const [compare, setCompare] = useState(false);
-    const [inCart, setInCart] = useState(false);
 
     const images = useMemo(
         () => candidates.filter((url) => !failedUrls.includes(url)),
@@ -360,18 +359,16 @@ function ProductCard({origin, title, price, preview, pics, shortSpecs, priority 
 
             <p className="product-card__price">{formatPrice(price)} ₽</p>
 
-            <button
-                type="button"
-                className={`product-card__button${inCart ? " product-card__button--in-cart" : ""}`}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setInCart((prev) => !prev);
-                }}
-            >
-                {inCart ? <CheckOutlined className="product-card__button-icon"/> :
-                    <ShoppingCartOutlined className="product-card__button-icon"/>}
-                {inCart ? "В корзине" : "В корзину"}
-            </button>
+            <div className="product-card__button-wrap">
+                <Tooltip title="В разработке">
+                    <span className="product-card__button-hit">
+                        <button type="button" className="product-card__button" disabled>
+                            <ShoppingCartOutlined className="product-card__button-icon"/>
+                            В корзину
+                        </button>
+                    </span>
+                </Tooltip>
+            </div>
         </article>
     );
 }

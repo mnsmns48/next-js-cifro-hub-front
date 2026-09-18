@@ -8,10 +8,13 @@ export interface RouteItem {
 export interface SpecRow {
     param: string;
     value: string;
+    alias?: string;
+    label?: string;
 }
 
 export interface SpecFeature {
     title: string;
+    alias?: string;
     rows: SpecRow[];
 }
 
@@ -19,9 +22,11 @@ export interface ProductAttr {
     id?: number;
     value?: string;
     alias?: string;
+    label?: string;
     key?: {
         key?: string;
         alias?: string;
+        label?: string;
     };
 }
 
@@ -46,6 +51,11 @@ export interface ProductDetailData {
     brand_obj?: {brand?: string} | null;
     type_obj?: {type?: string} | null;
     model?: string | null;
+    color?: {
+        alias?: string | null;
+        label?: string | null;
+        value?: string | null;
+    } | null;
     attrs?: ProductAttr[];
     short_specs?: ProductShortSpec[];
     full_specs?: {features?: SpecFeature[]} | null;
@@ -71,10 +81,6 @@ export function normalizeUrl(url: string): string {
     return trimmed.startsWith("//") ? `https:${trimmed}` : trimmed;
 }
 
-export function isAbortError(error: unknown): boolean {
-    return error instanceof DOMException && error.name === "AbortError";
-}
-
 export function formatSpecValue(param: string, value: string): string {
     return param.trim().toLocaleLowerCase("ru-RU") === "производитель"
         ? value.toLocaleUpperCase("ru-RU")
@@ -82,7 +88,70 @@ export function formatSpecValue(param: string, value: string): string {
 }
 
 export function attrLabel(attr: ProductAttr): string {
-    return attr.key?.alias || attr.key?.key || attr.alias || "";
+    return attr.key?.alias || attr.key?.label || attr.key?.key || attr.alias || "";
+}
+
+export function attrDisplayValue(attr: ProductAttr): string {
+    return (attr.alias || attr.value || "").trim();
+}
+
+function normalizeTitlePart(value: string): string {
+    return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
+}
+
+function titleHasPart(title: string, part: string): boolean {
+    const needle = normalizeTitlePart(part);
+    if (!needle) return false;
+    const tokens = normalizeTitlePart(title).split(/[^a-z0-9а-я]+/).filter(Boolean);
+    return tokens.includes(needle);
+}
+
+function colorAttrKey(attr: ProductAttr): string {
+    return (attr.key?.key ?? "").trim().toLowerCase();
+}
+
+export function findProductColor(product: ProductDetailData): {
+    alias: string;
+    label: string;
+} | null {
+    if (product.color) {
+        const alias = (product.color.alias ?? "").trim();
+        const label = (product.color.label ?? product.color.value ?? "").trim();
+        if (alias || label) return {alias, label};
+    }
+
+    const colorAttrs = (product.attrs ?? []).filter((attr) => {
+        const key = colorAttrKey(attr);
+        return key === "color" || key.endsWith("_color") || key.includes("color");
+    });
+    if (colorAttrs.length === 0) return null;
+
+    const preferred = colorAttrs.find((attr) => colorAttrKey(attr) === "color")
+        ?? colorAttrs.find((attr) => {
+            const alias = (attr.alias ?? "").trim();
+            const label = (attr.label ?? attr.value ?? "").trim();
+            return titleHasPart(product.title, alias) || titleHasPart(product.title, label);
+        })
+        ?? colorAttrs.find((attr) => colorAttrKey(attr) === "watch_case_color")
+        ?? colorAttrs[0];
+    const alias = (preferred.alias ?? "").trim();
+    const label = (preferred.label ?? preferred.value ?? "").trim();
+    if (!alias && !label) return null;
+    return {alias, label};
+}
+
+export function buildProductTitle(product: ProductDetailData): string {
+    const title = product.title.trim();
+    const color = findProductColor(product);
+    if (!color) return title;
+
+    const extra = [color.alias, color.label].filter((part, index, parts) => {
+        if (!part) return false;
+        if (index > 0 && normalizeTitlePart(part) === normalizeTitlePart(parts[0] ?? "")) return false;
+        return !titleHasPart(title, part);
+    });
+
+    return extra.length > 0 ? `${title} ${extra.join(" ")}` : title;
 }
 
 export function isUsefulValue(value?: string | null): value is string {
@@ -108,11 +177,11 @@ export function buildBriefSpecs(product: ProductDetailData, limit: number): Spec
     add("Гарантия", product.warranty);
 
     (product.attrs ?? []).forEach((attr) => {
-        add(attrLabel(attr), attr.value);
+        add(attrLabel(attr), attrDisplayValue(attr));
     });
 
     product.full_specs?.features?.forEach((feature) => {
-        feature.rows?.forEach((row) => add(row.param, row.value));
+        feature.rows?.forEach((row) => add(row.alias?.trim() || row.param, row.value));
     });
 
     return rows.slice(0, limit);
@@ -178,5 +247,14 @@ export function stepGalleryIndex(index: number, length: number, delta: number): 
 }
 
 export function specFeatures(product: ProductDetailData | null): SpecFeature[] {
-    return product?.full_specs?.features?.filter((item) => item.rows?.length) ?? [];
+    return (product?.full_specs?.features ?? [])
+        .filter((item) => item.rows?.length)
+        .map((feature) => ({
+            title: (feature.alias?.trim() || feature.title).trim(),
+            rows: feature.rows.map((row) => ({
+                param: (row.alias?.trim() || row.param).trim(),
+                value: row.value,
+            })),
+        }))
+        .filter((feature) => feature.title && feature.rows.length > 0);
 }

@@ -2,7 +2,7 @@
 
 import {useCallback, useMemo, useState} from "react";
 
-import CatalogBreadcrumbs from "@/components/catalog/CatalogBreadcrumbs";
+import CatalogBreadcrumbs from "../catalog/CatalogBreadcrumbs";
 
 import ProductBriefSpecs from "./ProductBriefSpecs";
 import ProductBriefSpecsSheet from "./ProductBriefSpecsSheet";
@@ -15,11 +15,12 @@ import {
     buildBriefSheetSpecs,
     buildBriefSpecs,
     buildProductImages,
+    buildProductTitle,
     getCons,
     getPros,
-    ProductDetailData,
     specFeatures,
     stepGalleryIndex,
+    type ProductDetailData,
 } from "./productDetail";
 
 import "../css/ProductDetail.css";
@@ -27,7 +28,6 @@ import "../css/ProductDetail.css";
 export default function ProductDetail({product}: { product: ProductDetailData; }) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [useNativeImg, setUseNativeImg] = useState(false);
-    const [inCart, setInCart] = useState(false);
     const [favorite, setFavorite] = useState(false);
     const [compare, setCompare] = useState(false);
     const [galleryOpen, setGalleryOpen] = useState(false);
@@ -35,6 +35,7 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
     const [briefSpecsSheetOpen, setBriefSpecsSheetOpen] = useState(false);
 
 
+    const displayTitle = useMemo(() => buildProductTitle(product), [product]);
     const images = useMemo(() => buildProductImages(product), [product]);
     const currentUrl = images[Math.min(activeIndex, Math.max(0, images.length - 1))] ?? null;
     const features = specFeatures(product);
@@ -80,7 +81,7 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
                 />
             )}
 
-            <h1 className="product-detail__title">{product.title}</h1>
+            <h1 className="product-detail__title">{displayTitle}</h1>
 
             <p className="product-detail__meta">
                 {metaParts.map((part, index) => (
@@ -93,7 +94,7 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
 
             <div className="product-detail__card">
                 <ProductGallery
-                    title={product.title}
+                    title={displayTitle}
                     images={images}
                     currentUrl={currentUrl}
                     activeIndex={activeIndex}
@@ -107,11 +108,9 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
                 <div className="product-detail__specs-col">
                     <ProductBuyBar
                         price={product.output_price}
-                        inCart={inCart}
                         favorite={favorite}
                         compare={compare}
                         showBriefSpecs={briefSheetSpecs.length > 0}
-                        onCart={() => setInCart((prev) => !prev)}
                         onFavorite={() => setFavorite((prev) => !prev)}
                         onCompare={() => setCompare((prev) => !prev)}
                         onOpenBriefSpecs={() => setBriefSpecsSheetOpen(true)}
@@ -137,7 +136,7 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
 
             {galleryOpen && currentUrl && (
                 <ProductLightbox
-                    title={product.title}
+                    title={displayTitle}
                     currentUrl={currentUrl}
                     activeIndex={activeIndex}
                     imageCount={images.length}
@@ -147,6 +146,15 @@ export default function ProductDetail({product}: { product: ProductDetailData; }
             )}
 
             <ProductFullSpecs features={features}/>
+
+            <p className="product-detail__disclaimer">
+                Характеристики и параметры устройств приведены в справочных целях
+                на основе данных из открытых источников и могут содержать ошибки
+                или неточности. Администрация сайта не гарантирует полноту и
+                достоверность представленной информации и не несёт ответственности
+                за возможные ошибки. Перед покупкой рекомендуем уточнять
+                характеристики у производителя или продавца.
+            </p>
         </article>
     );
 }

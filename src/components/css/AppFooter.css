@@ -52,6 +52,13 @@
     color: #c8c8c8;
 }
 
+.app-footer__notice {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #c8c8c8;
+}
+
 .app-footer__title {
     margin: 0 0 12px;
     font-size: 14px;
@@ -66,18 +73,31 @@
 }
 
 .app-footer__nav a,
+.app-footer__nav button,
 .app-footer__phone,
 .app-footer__address {
     font-size: 14px;
     line-height: 1.4;
     color: #c8c8c8;
-    transition: color var(--transition-fast);
     word-break: break-word;
 }
 
+.app-footer__nav button {
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.app-footer__nav a,
+.app-footer__nav button {
+    transition: color var(--transition-fast);
+}
+
 .app-footer__nav a:hover,
-.app-footer__phone:hover,
-.app-footer__address:hover {
+.app-footer__nav button:hover {
     color: #e2fc2a;
 }
 
@@ -90,6 +110,55 @@
 
 .app-footer__address {
     display: block;
+}
+
+.app-footer__socials {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.app-footer__social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #5c5c5c;
+    color: #fff;
+    transition: color 0.15s ease;
+}
+
+a.app-footer__social:hover,
+a.app-footer__social:focus-visible {
+    color: #e2fc2a;
+}
+
+.app-footer__social-icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+.app-footer__social-icon--telegram {
+    width: 24px;
+    height: 24px;
+    mask-image: url("/images/telegram-icon.png");
+    -webkit-mask-image: url("/images/telegram-icon.png");
+}
+
+.app-footer__social-icon--max {
+    mask-image: url("/images/max-icon.png");
+    -webkit-mask-image: url("/images/max-icon.png");
 }
 
 .app-footer__hours {
@@ -109,11 +178,22 @@
 }
 
 .app-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
     margin-top: 20px;
     padding-top: 14px;
     border-top: 1px solid #5c5c5c;
     font-size: 12px;
     color: #b0b0b0;
+}
+
+.app-footer__disclaimer {
+    margin: 0;
+    max-width: 36em;
+    line-height: 1.4;
 }
 
 @media (max-width: 768px) {

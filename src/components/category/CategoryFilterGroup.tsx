@@ -14,6 +14,7 @@ import {
     getPricePlaceholders,
     getValueKey,
     uniqueFilterValues,
+    valuesWithSelectedFirst,
     isBooleanFilter,
     isBrandFilter,
     isPriceFilter,
@@ -197,7 +198,8 @@ function ChipList({
     // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
     const previewCount = isBrandFilter(filter) ? BRAND_CHIP_PREVIEW : CHIP_PREVIEW;
-    const visibleValues = showAll || expanded ? values : values.slice(0, previewCount);
+    const orderedValues = valuesWithSelectedFirst(kind, values, selectedValues);
+    const visibleValues = showAll || expanded ? orderedValues : orderedValues.slice(0, previewCount);
 
     return (
         <div
@@ -253,7 +255,8 @@ function CheckList({
     onToggleValue: (filterKey: string, valueKey: string, checked: boolean) => void;
     // Для кнопки OK: revealApplyButton: (target: EventTarget | null) => void;
 }) {
-    const visibleValues = showAll || expanded ? values : values.slice(0, FILTER_LIST_PREVIEW);
+    const orderedValues = valuesWithSelectedFirst(kind, values, selectedValues);
+    const visibleValues = showAll || expanded ? orderedValues : orderedValues.slice(0, FILTER_LIST_PREVIEW);
     const canExpand = !showAll && values.length > FILTER_LIST_PREVIEW;
 
     return (

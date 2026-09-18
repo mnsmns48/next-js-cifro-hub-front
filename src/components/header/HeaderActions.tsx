@@ -1,56 +1,48 @@
 "use client";
 
+import {useState} from "react";
 import {
     AlignCenterOutlined,
     ShoppingCartOutlined,
     StarFilled,
-    UserOutlined
+    UserOutlined,
 } from "@ant-design/icons";
-import { JSX, useState } from "react";
 
+import StubModal from "@/components/header/StubModal";
 import "../css/HeaderActions.css";
 
-interface ActionItem {
-    icon: JSX.Element;
-    label: string;
-}
+const ACTIONS = [
+    {icon: <AlignCenterOutlined/>, label: "Сравнение"},
+    {icon: <StarFilled/>, label: "Избранное"},
+    {icon: <UserOutlined/>, label: "Профиль"},
+    {icon: <ShoppingCartOutlined/>, label: "Корзина"},
+];
 
 export default function HeaderActions() {
-    const actions: ActionItem[] = [
-        { icon: <AlignCenterOutlined />, label: "Сравнение" },
-        { icon: <StarFilled />, label: "Избранное" },
-        { icon: <UserOutlined />, label: "Профиль" },
-        { icon: <ShoppingCartOutlined />, label: "Корзина" },
-    ];
+    const [stubOpen, setStubOpen] = useState(false);
 
     return (
         <div className="header-actions-wrapper">
-            {actions.map((a) => (
-                <IconButton key={a.label} icon={a.icon} label={a.label} />
-            ))}
-        </div>
-    );
-}
-
-function IconButton({ icon, label }: { icon: JSX.Element; label: string }) {
-    const [hover, setHover] = useState(false);
-
-    return (
-        <div
-            className="header-action-item"
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-        >
-            <div className="header-action-icon-wrapper">
-                <div
-                    className="header-action-icon"
-                    style={{ color: hover ? "#e2fc2a" : "#ffffff" }}
+            {ACTIONS.map((action) => (
+                <button
+                    key={action.label}
+                    type="button"
+                    className="header-action-item"
+                    onClick={() => setStubOpen(true)}
                 >
-                    {icon}
-                </div>
-            </div>
-
-            <div className="header-action-label">{label}</div>
+                    <span className="header-action-icon-wrapper">
+                        <span className="header-action-icon">
+                            {action.icon}
+                        </span>
+                    </span>
+                    <span className="header-action-label">{action.label}</span>
+                </button>
+            ))}
+            <StubModal
+                open={stubOpen}
+                title="Раздел в разработке"
+                onClose={() => setStubOpen(false)}
+            />
         </div>
     );
 }
