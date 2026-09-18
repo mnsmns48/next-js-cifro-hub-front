@@ -1,6 +1,6 @@
 "use client";
 
-import {buildPageItems} from "./categoryListing";
+import {buildPageItems, pageDotsTarget} from "./categoryListing";
 
 export default function CategoryPagination({
     currentPage,
@@ -35,10 +35,18 @@ export default function CategoryPagination({
             <div className="category-products__page-list" aria-label="Номера страниц">
                 {pageItems.map((item) => {
                     if (typeof item !== "number") {
+                        const jumpTo = pageDotsTarget(currentPage, totalPages, item);
                         return (
-                            <span key={item} className="category-products__page-dots" aria-hidden>
+                            <button
+                                key={item}
+                                type="button"
+                                className="category-products__page-dots"
+                                disabled={loading}
+                                aria-label={`Перейти к странице ${jumpTo}`}
+                                onClick={() => onPageChange(jumpTo)}
+                            >
                                 ...
-                            </span>
+                            </button>
                         );
                     }
 

@@ -86,14 +86,14 @@ export function buildPageItems(
         }
 
         if (currentPage <= 3) {
-            return [1, 2, 3, "dots-right", totalPages];
+            return [1, 2, 3, 4, "dots-right", totalPages];
         }
 
         if (currentPage >= totalPages - 2) {
-            return [1, "dots-left", totalPages - 2, totalPages - 1, totalPages];
+            return [1, "dots-left", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
         }
 
-        return [1, "dots-left", currentPage, "dots-right", totalPages];
+        return [1, "dots-left", currentPage - 1, currentPage, currentPage + 1, "dots-right", totalPages];
     }
 
     if (totalPages <= 7) {
@@ -109,6 +109,20 @@ export function buildPageItems(
     }
 
     return [1, "dots-left", currentPage - 1, currentPage, currentPage + 1, "dots-right", totalPages];
+}
+
+export function pageDotsTarget(
+    currentPage: number,
+    totalPages: number,
+    side: "dots-left" | "dots-right",
+): number {
+    const target = side === "dots-left"
+        ? Math.floor((1 + currentPage) / 2)
+        : Math.ceil((currentPage + totalPages) / 2);
+    if (target === currentPage) {
+        return side === "dots-left" ? currentPage - 1 : currentPage + 1;
+    }
+    return Math.min(totalPages, Math.max(1, target));
 }
 
 export function scrollListingToTop(anchor: HTMLElement | null) {

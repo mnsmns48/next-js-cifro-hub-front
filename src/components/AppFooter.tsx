@@ -40,7 +40,7 @@ export default function AppFooter() {
                         <p className="app-footer__notice">Сайт запущен в тестовом режиме.</p>
                     </div>
 
-                    <div className="app-footer__column">
+                    <div className="app-footer__column app-footer__column--nav">
                         <h2 className="app-footer__title">Покупателям</h2>
                         <nav className="app-footer__nav" aria-label="Ссылки в футере">
                             <Link href="/catalog">Каталог</Link>
@@ -53,7 +53,7 @@ export default function AppFooter() {
                         </nav>
                     </div>
 
-                    <div className="app-footer__column">
+                    <div className="app-footer__column app-footer__column--hours">
                         <h2 className="app-footer__title">Режим работы</h2>
                         <p className="app-footer__hours">
                             <span>Пн–Сб</span>
@@ -65,19 +65,21 @@ export default function AppFooter() {
                         </p>
                     </div>
 
-                    <div className="app-footer__column">
-                        <h2 className="app-footer__title">Контакты</h2>
-                        <a href={PHONE_HREF} className="app-footer__phone">
-                            {PHONE}
-                        </a>
-                        <a
-                            href={MAPS_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="app-footer__address"
-                        >
-                            {ADDRESS}
-                        </a>
+                    <div className="app-footer__contact-block">
+                        <div className="app-footer__column app-footer__column--contacts">
+                            <h2 className="app-footer__title">Контакты</h2>
+                            <a href={PHONE_HREF} className="app-footer__phone">
+                                {PHONE}
+                            </a>
+                            <a
+                                href={MAPS_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="app-footer__address"
+                            >
+                                {ADDRESS}
+                            </a>
+                        </div>
                         <div className="app-footer__socials">
                             <FooterSocial href={TELEGRAM_URL} label="Telegram">
                                 <TelegramIcon/>

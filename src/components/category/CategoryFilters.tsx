@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useRef, useState} from "react";
+import {CloseOutlined} from "@ant-design/icons";
 
 import {
     filterExpandKey,
@@ -113,9 +114,10 @@ export default function CategoryFilters({
                             <button
                                 type="button"
                                 className="category-products__filters-mobile-cancel"
+                                aria-label="Закрыть"
                                 onClick={discardMobile}
                             >
-                                Отмена
+                                <CloseOutlined />
                             </button>
                         </header>
                     )}

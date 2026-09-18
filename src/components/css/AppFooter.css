@@ -21,8 +21,30 @@
 .app-footer__inner {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 24px 28px;
+    grid-template-areas: "brand nav hours contacts";
+    column-gap: 28px;
+    row-gap: 8px;
     align-items: start;
+}
+
+.app-footer__brand {
+    grid-area: brand;
+}
+
+.app-footer__column--nav {
+    grid-area: nav;
+}
+
+.app-footer__column--hours {
+    grid-area: hours;
+}
+
+.app-footer__contact-block {
+    grid-area: contacts;
+}
+
+.app-footer__column--contacts {
+    min-width: 0;
 }
 
 .app-footer__logo-link {
@@ -116,7 +138,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 .app-footer__social {
@@ -198,28 +220,74 @@ a.app-footer__social:focus-visible {
 
 @media (max-width: 768px) {
     .app-footer {
-        /* Dark footer fills the area behind the floating tab bar */
-        padding: 20px 12px calc(20px + var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px) + 18px);
+        padding: 20px 16px calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom, 0px) + 32px);
         margin-bottom: 0;
     }
 
     .app-footer__inner {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 18px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
 
-    .app-footer__brand {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 480px) {
-    .app-footer__inner {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 18px;
+    .app-footer__column--nav {
+        display: none;
     }
 
-    .app-footer__brand {
-        grid-column: auto;
+    .app-footer__contact-block {
+        display: contents;
+    }
+
+    .app-footer__column--contacts {
+        order: 2;
+    }
+
+    .app-footer__column--hours {
+        order: 3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+    }
+
+    .app-footer__socials {
+        order: 4;
+        margin-top: 0;
+    }
+
+    .app-footer__column--hours .app-footer__title,
+    .app-footer__column--contacts .app-footer__title {
+        display: none;
+    }
+
+    .app-footer__phone {
+        margin-bottom: 6px;
+        font-size: 16px;
+        line-height: 1.35;
+    }
+
+    .app-footer__address {
+        margin-bottom: 4px;
+    }
+
+    .app-footer__hours {
+        margin: 0;
+        font-size: 13px;
+        gap: 6px;
+    }
+
+    .app-footer__hours span:first-child {
+        min-width: 0;
+    }
+
+    .app-footer__bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 16px;
+        padding-top: 12px;
+    }
+
+    .app-footer__disclaimer {
+        max-width: none;
     }
 }
